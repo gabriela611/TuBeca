@@ -57,3 +57,10 @@ prisma/*.db-journal
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+#agents
+.agent
+.agents
+.gemini
+
+design.md

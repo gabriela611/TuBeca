@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       data: {
         role: 'model',
-        content: response,
+        content: response.text,
+        suggestedBecas: response.suggestedBecas,
       },
     });
   } catch (error) {

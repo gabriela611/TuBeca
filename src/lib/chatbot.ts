@@ -9,23 +9,36 @@ function getAiClient() {
   return new GoogleGenAI({ apiKey });
 }
 
-const SYSTEM_PROMPT = `Eres TuBeca Bot 🎓, un asistente virtual experto en becas universitarias colombianas.
+export interface SuggestedBeca {
+  id: string;
+  titulo: string;
+  universidad?: string;
+  cobertura?: string;
+  ciudad?: string;
+  motivo?: string;
+}
 
-Tu objetivo es ayudar a estudiantes colombianos a encontrar becas que se ajusten a su perfil.
+export interface ChatResponse {
+  text: string;
+  suggestedBecas: SuggestedBeca[];
+}
 
-Reglas:
-- Responde SIEMPRE en español colombiano, de forma amable y cercana.
-- Basa tus respuestas ÚNICAMENTE en las becas disponibles en la base de datos que se te proporcionan.
-- Si no encuentras becas relevantes, sugiérele al estudiante que revise más tarde o ajuste sus criterios.
-- Incluye siempre el enlace original de la beca cuando la recomiendes.
-- Menciona fechas de cierre si están disponibles.
-- Si el estudiante no da suficiente información, haz preguntas para entender mejor su perfil:
-  - ¿Qué nivel de estudio busca? (pregrado, posgrado, doctorado)
-  - ¿En qué ciudad o departamento?
-  - ¿Qué carrera o área de estudio?
-  - ¿Tiene alguna condición especial? (comunidad étnica, víctima del conflicto, deportista, etc.)
-- No inventes información sobre becas que no están en la base de datos.
-- Sé conciso pero informativo.`;
+const SYSTEM_PROMPT = `Eres TuBeca Bot 🎓, un asesor vocacional y experto en becas universitarias en Colombia.
+
+Tu misión es orientar al estudiante de forma clara, empática y realista.
+
+Reglas de respuesta:
+1. Responde en español cercano y profesional (tono colombiano cordial).
+2. Si el usuario te cuenta su situación (puntaje ICFES/Saber 11, estrato, ciudad, carrera o dificultades económicas), felicítalo por sus logros y dale recomendaciones puntuales basadas en las becas disponibles.
+3. Explica claramente POR QUÉ le conviene cada beca sugerida (ej. "Tu puntaje de 360 supera el mínimo de 340", "Cubre el 100% de la matrícula").
+4. Si faltan datos clave (ej. ciudad o estrato), hazle 1 o 2 preguntas rápidas para afinar la búsqueda.
+5. Al final de tu respuesta, si recomendaste becas específicas de las que tienes en la lista, incluye obligatoriamente un bloque de código JSON con los IDs y títulos exactos de las becas recomendadas:
+\`\`\`json
+[
+  {"id": "id-de-la-beca", "titulo": "Título de la beca", "motivo": "Razón clave por la que le aplica"}
+]
+\`\`\`
+Si no recomendaste ninguna beca en concreto, no agregues el bloque JSON.`;
 
 /**
  * Envía un mensaje al chatbot y recibe una respuesta contextualizada
@@ -34,7 +47,7 @@ Reglas:
 export async function chat(
   message: string,
   conversationHistory: { role: 'user' | 'model'; content: string }[] = [],
-): Promise<string> {
+): Promise<ChatResponse> {
   // Traer becas activas y próximas de la BD para dar contexto
   const becas = await prisma.beca.findMany({
     where: {
@@ -51,6 +64,7 @@ export async function chat(
   });
 
   const becasContext = becas.map((b) => ({
+    id: b.id,
     titulo: b.titulo,
     descripcion: b.descripcion,
     universidad: b.universidad?.nombre || 'Varias',
@@ -80,7 +94,10 @@ export async function chat(
 
   const ai = getAiClient();
   if (!ai) {
-    return 'El asistente de IA aún no tiene configurada la variable GEMINI_API_KEY en el archivo .env. Por favor configúrala para activar el chatbot.';
+    return {
+      text: 'El asistente de IA aún no tiene configurada la variable GEMINI_API_KEY en el archivo .env. Por favor ingresa tu API key en el archivo .env para habilitar el asistente inteligente.',
+      suggestedBecas: [],
+    };
   }
 
   try {
@@ -94,9 +111,60 @@ export async function chat(
       },
     });
 
-    return response.text || 'Lo siento, no pude procesar tu mensaje. ¿Podrías intentar de nuevo?';
+    const rawText = response.text || '';
+    
+    // Extraer bloque JSON si Gemini lo incluyó
+    let cleanedText = rawText;
+    const suggestedBecas: SuggestedBeca[] = [];
+    const jsonMatch = rawText.match(/```(?:json)?\s*(\[\s*\{[\s\S]*?\}\s*\])\s*```/);
+
+    if (jsonMatch) {
+      cleanedText = rawText.replace(jsonMatch[0], '').trim();
+      try {
+        const parsed = JSON.parse(jsonMatch[1]) as Array<{ id: string; titulo?: string; motivo?: string }>;
+        for (const item of parsed) {
+          const matched = becas.find((b) => b.id === item.id || b.titulo.toLowerCase().includes(item.titulo?.toLowerCase() || ''));
+          if (matched) {
+            suggestedBecas.push({
+              id: matched.id,
+              titulo: matched.titulo,
+              universidad: matched.universidad?.nombre,
+              cobertura: matched.cobertura || `${matched.porcentajeCobertura || 100}%`,
+              ciudad: matched.ciudad || undefined,
+              motivo: item.motivo,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('[Chatbot] Could not parse suggested becas JSON:', err);
+      }
+    }
+
+    // Fallback: si no hubo JSON pero se mencionan títulos exactos de becas
+    if (suggestedBecas.length === 0) {
+      for (const b of becas) {
+        if (rawText.toLowerCase().includes(b.titulo.toLowerCase())) {
+          suggestedBecas.push({
+            id: b.id,
+            titulo: b.titulo,
+            universidad: b.universidad?.nombre,
+            cobertura: b.cobertura || `${b.porcentajeCobertura || 100}%`,
+            ciudad: b.ciudad || undefined,
+          });
+          if (suggestedBecas.length >= 3) break;
+        }
+      }
+    }
+
+    return {
+      text: cleanedText || 'Aquí tienes las becas que mejor se adaptan a lo que buscas:',
+      suggestedBecas,
+    };
   } catch (error) {
     console.error('[Chatbot] Error:', error);
-    return 'Ups, tuve un problema al procesar tu mensaje. Por favor intenta de nuevo en unos momentos. 🙏';
+    return {
+      text: 'Ups, tuve un problema al procesar tu mensaje. Por favor intenta de nuevo en unos momentos.',
+      suggestedBecas: [],
+    };
   }
 }
