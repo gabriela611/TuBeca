@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Universidad {
+  id           String   @id @default(cuid())
+  nombre       String   @unique
+  ciudad       String
+  departamento String
+  sitioWeb     String?
+  logoUrl      String?
+  tipo         String   // "publica" | "privada"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  becas Beca[]
+
+  @@map("universidades")
+}
+
+model Beca {
+  id                   String   @id @default(cuid())
+  titulo               String
+  descripcion          String
+  universidad          Universidad? @relation(fields: [universidadId], references: [id])
+  universidadId        String?
+  ciudad               String?
+  departamento         String?
+  tipo                 String   // "pregrado" | "posgrado" | "doctorado" | "tecnico"
+  modalidad            String?  // "presencial" | "virtual" | "hibrida"
+  cobertura            String?  // "total" | "parcial"
+  porcentajeCobertura  Float?
+  fechaInicio          DateTime?
+  fechaCierre          DateTime?
+  requisitos           String?
+  urlOriginal          String
+  fuente               String   // "icetex" | "colfuturo" | "universidad" | "mineducacion" | "manual"
+  estado               String   @default("activa") // "activa" | "vencida" | "proxima"
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  categorias BecaCategoria[]
+
+  @@map("becas")
+}
+
+model Categoria {
+  id          String @id @default(cuid())
+  nombre      String @unique
+  descripcion String?
+
+  becas BecaCategoria[]
+
+  @@map("categorias")
+}
+
+// Tabla intermedia para relación muchos a muchos
+model BecaCategoria {
+  beca        Beca      @relation(fields: [becaId], references: [id], onDelete: Cascade)
+  becaId      String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  categoriaId String
+
+  @@id([becaId, categoriaId])
+  @@map("beca_categorias")
+}
