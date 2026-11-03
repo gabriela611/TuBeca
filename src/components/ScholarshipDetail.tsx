@@ -45,6 +45,7 @@ export function ScholarshipDetail({
   if (!beca) {
     return (
       <div
+        className="tubeca-detail-container"
         style={{
           flex: 1.2,
           height: '100%',
@@ -128,6 +129,7 @@ export function ScholarshipDetail({
   return (
     <div
       ref={containerRef}
+      className="tubeca-detail-container"
       style={{
         flex: 1.2,
         height: '100%',

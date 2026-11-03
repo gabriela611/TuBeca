@@ -45,24 +45,40 @@ export function ColombiaMap({
 }: ColombiaMapProps) {
   const [hoveredRegion, setHoveredRegion] = useState<RegionData | null>(null);
 
-  // Group scholarships by region
+  // Group scholarships by region / city
   const getBecasForRegion = (deptName: string) => {
     return becas.filter((b) => {
-      const matchDept = b.departamento?.toLowerCase().includes(deptName.toLowerCase()) ||
-                        b.ciudad?.toLowerCase().includes(deptName.toLowerCase()) ||
-                        b.departamento === 'Todos' ||
-                        b.ciudad === 'Nacional';
+      const dept = (b.departamento || b.universidadRel?.departamento || '').toLowerCase();
+      const city = (b.ciudad || b.universidadRel?.ciudad || b.municipioAplicacion || '').toLowerCase();
+      const target = deptName.toLowerCase();
+
+      const matchDept =
+        dept.includes(target) ||
+        city.includes(target) ||
+        (target === 'cundinamarca' && city.includes('bogot')) ||
+        (target === 'antioquia' && city.includes('medell')) ||
+        dept === 'todos' ||
+        city === 'nacional';
       return matchDept;
     });
   };
 
   const activeRegionBecas = selectedDepartamento
-    ? becas.filter(
-        (b) =>
-          b.departamento?.toLowerCase().includes(selectedDepartamento.toLowerCase()) ||
-          b.ciudad?.toLowerCase().includes(selectedDepartamento.toLowerCase()) ||
-          b.departamento === 'Todos',
-      )
+    ? becas.filter((b) => {
+        const dept = (b.departamento || b.universidadRel?.departamento || '').toLowerCase();
+        const city = (b.ciudad || b.universidadRel?.ciudad || b.municipioAplicacion || '').toLowerCase();
+        const target = selectedDepartamento.toLowerCase();
+
+        return (
+          dept.includes(target) ||
+          city.includes(target) ||
+          (target.includes('cundinamarca') && city.includes('bogot')) ||
+          (target.includes('bogot') && (dept.includes('cundinamarca') || city.includes('bogot'))) ||
+          (target.includes('antioquia') && city.includes('medell')) ||
+          (target.includes('medell') && (dept.includes('antioquia') || city.includes('medell'))) ||
+          dept === 'todos'
+        );
+      })
     : becas;
 
   return (

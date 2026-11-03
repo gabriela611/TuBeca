@@ -69,6 +69,14 @@
   --radius-lg: 16px;
   --radius-full: 9999px;
 
+  /* transitions.dev Motion Tokens */
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-smooth: 320ms;
+
   /* Shadows with Slate depth */
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
   --shadow-card: 0 2px 6px -1px rgba(15, 23, 42, 0.05), 0 1px 4px -1px rgba(15, 23, 42, 0.03);
@@ -136,4 +144,165 @@ input,
 select,
 textarea {
   font-family: inherit;
+}
+
+/* =========================================================
+   Tinder-Style Responsive Layout (Desktop 3-col & Mobile Flow)
+   ========================================================= */
+
+.tubeca-header-mobile-filters {
+  display: none;
+}
+
+.tubeca-desktop-sidebar {
+  display: flex;
+  width: 270px;
+  min-width: 270px;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.tubeca-center-stage {
+  flex: 1;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px 16px;
+  margin: 0 auto;
+}
+
+.tubeca-list-stage {
+  flex: 1;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding: 16px 18px;
+  margin: 0 auto;
+}
+
+.tubeca-keyboard-hint {
+  display: flex;
+}
+
+/* Mobile Viewport Adaptation (< 1024px) */
+@media (max-width: 1023px) {
+  html,
+  body {
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .tubeca-header {
+    padding: 0 12px !important;
+    height: 60px !important;
+  }
+
+  .tubeca-header-brand {
+    display: none !important;
+  }
+
+  .tubeca-header-quiz-btn {
+    display: none !important;
+  }
+
+  .tubeca-header-view-toggle {
+    display: none !important;
+  }
+
+  .tubeca-header-mobile-filters {
+    display: flex !important;
+    align-items: center;
+  }
+
+  .tubeca-header-search {
+    max-width: none !important;
+    flex: 1 !important;
+    margin: 0 4px !important;
+  }
+
+  .tubeca-fav-label {
+    display: none !important;
+  }
+
+  .tubeca-desktop-sidebar {
+    display: none !important;
+  }
+
+  .tubeca-workspace {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: calc(100vh - 60px) !important;
+    overflow-y: visible !important;
+  }
+
+  .tubeca-center-stage {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    padding: 16px 14px 20px 14px !important;
+    flex: none !important;
+  }
+
+  .tubeca-list-stage {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    padding: 16px 12px 20px 12px !important;
+    flex: none !important;
+  }
+
+  .tubeca-detail-container {
+    width: 100% !important;
+    flex: none !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow-y: visible !important;
+    border-left: none !important;
+    border-top: 1px solid var(--border-subtle) !important;
+    padding: 24px 18px !important;
+  }
+
+  .tubeca-keyboard-hint {
+    display: none !important;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* transitions.dev Card Entrance From Center */
+@keyframes tCardEnterFromCenter {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translate3d(0, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+.t-card-enter {
+  animation: tCardEnterFromCenter var(--duration-smooth) var(--ease-smooth-out) both;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-card-enter {
+    animation: none !important;
+  }
 }

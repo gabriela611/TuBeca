@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
               id: true,
               nombre: true,
               ciudad: true,
+              departamento: true,
               tipo: true,
               logoUrl: true,
             },
@@ -105,8 +106,8 @@ export async function GET(request: NextRequest) {
       // Backward compatibility aliases
       titulo: b.nombreBeca,
       tipo: b.nivelAcademico || 'Pregrado',
-      ciudad: b.municipioAplicacion,
-      departamento: 'Antioquia',
+      ciudad: b.universidadRel?.ciudad || b.municipioAplicacion,
+      departamento: b.universidadRel?.departamento || (b.universidadRel?.ciudad === 'Bogotá' ? 'Cundinamarca' : 'Antioquia'),
       urlOriginal: b.enlaceOficial || '',
       fuente: 'Universidad',
       estado: b.estadoConvocatoria?.toLowerCase().includes('abierta')

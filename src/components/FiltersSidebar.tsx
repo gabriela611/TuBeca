@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Filter, RotateCcw, Check } from 'lucide-react';
+import { Filter, RotateCcw, Check, X } from 'lucide-react';
 
 export interface FilterState {
   tipo: string;
@@ -22,6 +22,7 @@ interface FiltersSidebarProps {
   ciudades: string[];
   departamentos?: string[];
   categorias: string[];
+  onCloseMobile?: () => void;
 }
 
 export function FiltersSidebar({
@@ -33,6 +34,7 @@ export function FiltersSidebar({
   ciudades,
   departamentos,
   categorias,
+  onCloseMobile,
 }: FiltersSidebarProps) {
   const activeCity = filters.ciudad || filters.departamento || '';
   const hasActiveFilters =
@@ -59,9 +61,10 @@ export function FiltersSidebar({
 
   return (
     <aside
+      className="tubeca-filters-sidebar"
       style={{
-        width: '260px',
-        minWidth: '260px',
+        width: '100%',
+        maxWidth: '280px',
         height: '100%',
         minHeight: 0,
         overflowY: 'auto',
@@ -90,23 +93,49 @@ export function FiltersSidebar({
           </h2>
         </div>
 
-        {hasActiveFilters && (
-          <button
-            onClick={onResetFilters}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: 'var(--brand-700)',
-              padding: '2px 6px',
-            }}
-          >
-            <RotateCcw size={11} />
-            <span>Limpiar</span>
-          </button>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {hasActiveFilters && (
+            <button
+              onClick={onResetFilters}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'var(--brand-700)',
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '2px 6px',
+              }}
+            >
+              <RotateCcw size={11} />
+              <span>Limpiar</span>
+            </button>
+          )}
+
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              aria-label="Cerrar filtros"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--surface-subtle)',
+                border: 'none',
+                color: 'var(--ink-700)',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Counter Tag */}
@@ -161,6 +190,8 @@ export function FiltersSidebar({
                   color: isSelected ? 'var(--brand-700)' : 'var(--ink-700)',
                   backgroundColor: isSelected ? 'var(--brand-50)' : 'transparent',
                   textAlign: 'left',
+                  border: 'none',
+                  cursor: 'pointer',
                   transition: 'background-color 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
@@ -211,6 +242,8 @@ export function FiltersSidebar({
                   color: isSelected ? 'var(--brand-700)' : 'var(--ink-700)',
                   backgroundColor: isSelected ? 'var(--brand-50)' : 'transparent',
                   textAlign: 'left',
+                  border: 'none',
+                  cursor: 'pointer',
                   transition: 'background-color 0.15s ease',
                 }}
                 onMouseEnter={(e) => {

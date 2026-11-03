@@ -11,6 +11,7 @@ export interface BecaItem {
     id: string;
     nombre: string;
     ciudad: string;
+    departamento?: string | null;
     tipo: string;
   } | null;
   municipioAplicacion?: string | null;
@@ -299,7 +300,7 @@ export function ScholarshipList({
         minHeight: 0,
         height: '100%',
         overflowY: 'auto',
-        padding: '16px 20px',
+        padding: '12px 2px',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',

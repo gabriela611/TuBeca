@@ -39,8 +39,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       ...beca,
       titulo: beca.nombreBeca,
       tipo: beca.nivelAcademico || 'Pregrado',
-      ciudad: beca.municipioAplicacion,
-      departamento: 'Antioquia',
+      ciudad: beca.universidadRel?.ciudad || beca.municipioAplicacion,
+      departamento: beca.universidadRel?.departamento || (beca.universidadRel?.ciudad === 'Bogotá' ? 'Cundinamarca' : 'Antioquia'),
       urlOriginal: beca.enlaceOficial || '',
       fuente: 'Universidad',
       estado: beca.estadoConvocatoria?.toLowerCase().includes('abierta')

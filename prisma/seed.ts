@@ -34,12 +34,17 @@ interface BecaRaw {
 }
 
 async function main() {
-  console.log('🌱 Starting database seed with new scholarships schema...');
+  console.log('🌱 Starting database seed with scholarships...');
 
   // 1. Seed Universidades
   const uniEafit = await prisma.universidad.upsert({
     where: { nombre: 'Universidad EAFIT' },
-    update: {},
+    update: {
+      ciudad: 'Medellín',
+      departamento: 'Antioquia',
+      sitioWeb: 'https://www.eafit.edu.co',
+      tipo: 'privada',
+    },
     create: {
       nombre: 'Universidad EAFIT',
       ciudad: 'Medellín',
@@ -51,7 +56,12 @@ async function main() {
 
   const uniUpb = await prisma.universidad.upsert({
     where: { nombre: 'Universidad Pontificia Bolivariana (UPB)' },
-    update: {},
+    update: {
+      ciudad: 'Medellín',
+      departamento: 'Antioquia',
+      sitioWeb: 'https://www.upb.edu.co',
+      tipo: 'privada',
+    },
     create: {
       nombre: 'Universidad Pontificia Bolivariana (UPB)',
       ciudad: 'Medellín',
@@ -63,7 +73,12 @@ async function main() {
 
   const uniUdem = await prisma.universidad.upsert({
     where: { nombre: 'Universidad de Medellín' },
-    update: {},
+    update: {
+      ciudad: 'Medellín',
+      departamento: 'Antioquia',
+      sitioWeb: 'https://udem.edu.co',
+      tipo: 'privada',
+    },
     create: {
       nombre: 'Universidad de Medellín',
       ciudad: 'Medellín',
@@ -75,7 +90,12 @@ async function main() {
 
   const uniCes = await prisma.universidad.upsert({
     where: { nombre: 'Universidad CES' },
-    update: {},
+    update: {
+      ciudad: 'Medellín',
+      departamento: 'Antioquia',
+      sitioWeb: 'https://www.ces.edu.co',
+      tipo: 'privada',
+    },
     create: {
       nombre: 'Universidad CES',
       ciudad: 'Medellín',
@@ -85,11 +105,29 @@ async function main() {
     },
   });
 
+  const uniAndes = await prisma.universidad.upsert({
+    where: { nombre: 'Universidad de los Andes' },
+    update: {
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      sitioWeb: 'https://uniandes.edu.co',
+      tipo: 'privada',
+    },
+    create: {
+      nombre: 'Universidad de los Andes',
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      sitioWeb: 'https://uniandes.edu.co',
+      tipo: 'privada',
+    },
+  });
+
   const universityMap: Record<string, string> = {
     'Universidad EAFIT': uniEafit.id,
     'Universidad Pontificia Bolivariana (UPB)': uniUpb.id,
     'Universidad de Medellín': uniUdem.id,
     'Universidad CES': uniCes.id,
+    'Universidad de los Andes': uniAndes.id,
   };
 
   // 2. Seed Categorías
@@ -112,22 +150,35 @@ async function main() {
     catMap.set(cat.nombre, created.id);
   }
 
-  // 3. Load JSON data
-  const jsonPath = path.join(__dirname, 'data', 'becas_medellin.json');
-  const rawData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-  const becasList: BecaRaw[] = rawData.becas;
+  // 3. Load all JSON data files from prisma/data
+  const dataDir = path.join(__dirname, 'data');
+  const jsonFiles = fs.readdirSync(dataDir).filter((f) => f.endsWith('.json'));
 
-  console.log(`Encontradas ${becasList.length} becas en el archivo.`);
+  const becasList: BecaRaw[] = [];
+  for (const file of jsonFiles) {
+    const filePath = path.join(dataDir, file);
+    try {
+      const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      if (Array.isArray(parsed.becas)) {
+        becasList.push(...parsed.becas);
+        console.log(`📁 Cargadas ${parsed.becas.length} becas desde ${file}`);
+      }
+    } catch (err) {
+      console.error(`Error leyendo ${file}:`, err);
+    }
+  }
+
+  console.log(`Total de ${becasList.length} becas a procesar.`);
 
   // Mapping categories helper
   const getCategoriesForBeca = (b: BecaRaw): string[] => {
     const cats: string[] = [];
     const text = `${b.nombre_beca} ${b.descripcion || ''} ${b.requisitos || ''} ${b.poblacion_objetivo || ''}`.toLowerCase();
 
-    if (text.includes('mérito') || text.includes('talento') || text.includes('excelencia') || text.includes('saber 11')) {
+    if (text.includes('mérito') || text.includes('talento') || text.includes('excelencia') || text.includes('saber 11') || text.includes('preferente')) {
       cats.push('Excelencia Académica');
     }
-    if (text.includes('económ') || text.includes('estrato') || text.includes('vulnerab') || text.includes('smlmv') || text.includes('sisbén') || text.includes('social')) {
+    if (text.includes('económ') || text.includes('estrato') || text.includes('vulnerab') || text.includes('smlmv') || text.includes('sisbén') || text.includes('social') || text.includes('necesidad')) {
       cats.push('Necesidad Económica');
     }
     if (text.includes('deport')) {
@@ -139,7 +190,7 @@ async function main() {
     if (text.includes('investiga') || text.includes('doctorado')) {
       cats.push('Investigación');
     }
-    if (text.includes('municipio') || text.includes('convenio') || text.includes('fundación') || text.includes('antioquia')) {
+    if (text.includes('municipio') || text.includes('convenio') || text.includes('fundación') || text.includes('antioquia') || text.includes('alianza')) {
       cats.push('Alianzas Regionales');
     }
 
@@ -179,7 +230,7 @@ async function main() {
         fechaCierre: fechaCierreDate,
         estadoConvocatoria: b.estado_convocatoria,
         enlaceOficial: b.enlace_oficial,
-        fechaActualizacion: null,
+        fechaActualizacion: b.fecha_actualizacion ? new Date(b.fecha_actualizacion) : null,
         estadoCalidadDato: b.estado_calidad_dato,
         observaciones: b.observaciones,
       },
@@ -209,7 +260,7 @@ async function main() {
         fechaCierre: fechaCierreDate,
         estadoConvocatoria: b.estado_convocatoria,
         enlaceOficial: b.enlace_oficial,
-        fechaActualizacion: null,
+        fechaActualizacion: b.fecha_actualizacion ? new Date(b.fecha_actualizacion) : null,
         estadoCalidadDato: b.estado_calidad_dato,
         observaciones: b.observaciones,
       },
@@ -237,12 +288,12 @@ async function main() {
     }
   }
 
-  console.log(` ${becasList.length} becas creadas exitosamente.`);
+  console.log(`✅ ${becasList.length} becas creadas/actualizadas exitosamente.`);
 }
 
 main()
   .catch((e) => {
-    console.error(' Error en el seed:', e);
+    console.error('❌ Error en el seed:', e);
     process.exit(1);
   })
   .finally(async () => {
