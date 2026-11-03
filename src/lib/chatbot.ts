@@ -48,13 +48,9 @@ export async function chat(
   message: string,
   conversationHistory: { role: 'user' | 'model'; content: string }[] = [],
 ): Promise<ChatResponse> {
-  // Traer becas activas y próximas de la BD para dar contexto
+  // Traer becas de la BD para dar contexto
   const becas = await prisma.beca.findMany({
-    where: {
-      estado: { in: ['activa', 'proxima'] },
-    },
     include: {
-      universidad: true,
       categorias: {
         include: { categoria: true },
       },
@@ -65,16 +61,16 @@ export async function chat(
 
   const becasContext = becas.map((b) => ({
     id: b.id,
-    titulo: b.titulo,
-    descripcion: b.descripcion,
-    universidad: b.universidad?.nombre || 'Varias',
-    ciudad: b.ciudad,
-    tipo: b.tipo,
-    cobertura: `${b.cobertura || 'No especificada'}${b.porcentajeCobertura ? ` (${b.porcentajeCobertura}%)` : ''}`,
+    titulo: b.nombreBeca,
+    descripcion: b.descripcion || '',
+    universidad: b.universidad,
+    ciudad: b.municipioAplicacion || 'Medellín',
+    tipo: b.nivelAcademico || 'Pregrado',
+    cobertura: b.cobertura || b.porcentaje || 'No especificada',
     fechaCierre: b.fechaCierre?.toISOString().split('T')[0] || 'No especificada',
-    estado: b.estado,
-    requisitos: b.requisitos,
-    url: b.urlOriginal,
+    estado: b.estadoConvocatoria || 'Abierta',
+    requisitos: b.requisitos || '',
+    url: b.enlaceOficial || '',
     categorias: b.categorias.map((c) => c.categoria.nombre),
   }));
 
@@ -123,14 +119,14 @@ export async function chat(
       try {
         const parsed = JSON.parse(jsonMatch[1]) as Array<{ id: string; titulo?: string; motivo?: string }>;
         for (const item of parsed) {
-          const matched = becas.find((b) => b.id === item.id || b.titulo.toLowerCase().includes(item.titulo?.toLowerCase() || ''));
+          const matched = becas.find((b) => b.id === item.id || b.nombreBeca.toLowerCase().includes(item.titulo?.toLowerCase() || ''));
           if (matched) {
             suggestedBecas.push({
               id: matched.id,
-              titulo: matched.titulo,
-              universidad: matched.universidad?.nombre,
-              cobertura: matched.cobertura || `${matched.porcentajeCobertura || 100}%`,
-              ciudad: matched.ciudad || undefined,
+              titulo: matched.nombreBeca,
+              universidad: matched.universidad,
+              cobertura: matched.cobertura || matched.porcentaje || '100%',
+              ciudad: matched.municipioAplicacion || undefined,
               motivo: item.motivo,
             });
           }
@@ -143,13 +139,13 @@ export async function chat(
     // Fallback: si no hubo JSON pero se mencionan títulos exactos de becas
     if (suggestedBecas.length === 0) {
       for (const b of becas) {
-        if (rawText.toLowerCase().includes(b.titulo.toLowerCase())) {
+        if (rawText.toLowerCase().includes(b.nombreBeca.toLowerCase())) {
           suggestedBecas.push({
             id: b.id,
-            titulo: b.titulo,
-            universidad: b.universidad?.nombre,
-            cobertura: b.cobertura || `${b.porcentajeCobertura || 100}%`,
-            ciudad: b.ciudad || undefined,
+            titulo: b.nombreBeca,
+            universidad: b.universidad,
+            cobertura: b.cobertura || b.porcentaje || '100%',
+            ciudad: b.municipioAplicacion || undefined,
           });
           if (suggestedBecas.length >= 3) break;
         }

@@ -27,27 +27,39 @@ model Universidad {
 }
 
 model Beca {
-  id                   String   @id @default(cuid())
-  titulo               String
-  descripcion          String
-  universidad          Universidad? @relation(fields: [universidadId], references: [id])
-  universidadId        String?
-  ciudad               String?
-  departamento         String?
-  tipo                 String   // "pregrado" | "posgrado" | "doctorado" | "tecnico"
-  modalidad            String?  // "presencial" | "virtual" | "hibrida"
-  cobertura            String?  // "total" | "parcial"
-  porcentajeCobertura  Float?
-  fechaInicio          DateTime?
-  fechaCierre          DateTime?
-  requisitos           String?
-  urlOriginal          String
-  fuente               String   // "icetex" | "colfuturo" | "universidad" | "mineducacion" | "manual"
-  estado               String   @default("activa") // "activa" | "vencida" | "proxima"
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                    String    @id
+  idBeca                String    @unique @map("id_beca")
+  universidad           String
+  universidadRel        Universidad? @relation(fields: [universidadId], references: [id])
+  universidadId         String?   @map("universidad_id")
+  municipioAplicacion   String?   @map("municipio_aplicacion")
+  nombreBeca            String    @map("nombre_beca")
+  nivelAcademico        String?   @map("nivel_academico")
+  areaConocimiento      String?   @map("area_conocimiento")
+  modalidad             String?
+  descripcion           String?
+  tipoFinanciacion      String?   @map("tipo_financiacion")
+  porcentaje            String?
+  valorBecaCop          Float?    @map("valor_beca_cop")
+  cobertura             String?
+  edadMinima            Int?      @map("edad_minima")
+  edadMaxima            Int?      @map("edad_maxima")
+  promedioMinimo        Float?    @map("promedio_minimo")
+  estratoSocioeconomico String?   @map("estrato_socioeconomico")
+  poblacionObjetivo     String?   @map("poblacion_objetivo")
+  requisitos            String?
+  documentosRequeridos  String?   @map("documentos_requeridos")
+  fechaApertura         DateTime? @map("fecha_apertura")
+  fechaCierre           DateTime? @map("fecha_cierre")
+  estadoConvocatoria    String?   @map("estado_convocatoria")
+  enlaceOficial         String?   @map("enlace_oficial")
+  fechaActualizacion    DateTime? @map("fecha_actualizacion")
+  estadoCalidadDato     String?   @map("estado_calidad_dato")
+  observaciones         String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
-  categorias BecaCategoria[]
+  categorias            BecaCategoria[]
 
   @@map("becas")
 }
@@ -62,7 +74,6 @@ model Categoria {
   @@map("categorias")
 }
 
-// Tabla intermedia para relación muchos a muchos
 model BecaCategoria {
   beca        Beca      @relation(fields: [becaId], references: [id], onDelete: Cascade)
   becaId      String

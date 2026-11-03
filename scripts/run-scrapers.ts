@@ -74,34 +74,34 @@ async function main() {
 
         for (const beca of normalized) {
           const existing = await prisma.beca.findFirst({
-            where: { urlOriginal: beca.urlOriginal },
+            where: { enlaceOficial: beca.urlOriginal },
           });
 
           // Buscar o crear universidad si aplica
-          let universidadId: string | undefined;
+          let universidadId: string | null = null;
           if (beca.universidadNombre) {
             const uni = await prisma.universidad.findFirst({
               where: { nombre: { contains: beca.universidadNombre } },
             });
-            universidadId = uni?.id;
+            universidadId = uni?.id || null;
           }
 
           const dbData = {
-            titulo: beca.titulo,
+            idBeca: beca.urlOriginal,
+            nombreBeca: beca.titulo,
             descripcion: beca.descripcion,
+            universidad: beca.universidadNombre || 'Universidad',
             universidadId,
-            ciudad: beca.ciudad,
-            departamento: beca.departamento,
-            tipo: beca.tipo,
+            municipioAplicacion: beca.ciudad,
+            nivelAcademico: beca.tipo,
             modalidad: beca.modalidad,
             cobertura: beca.cobertura,
-            porcentajeCobertura: beca.porcentajeCobertura,
-            fechaInicio: beca.fechaInicio,
+            porcentaje: beca.porcentajeCobertura ? `${beca.porcentajeCobertura}%` : null,
+            fechaApertura: beca.fechaInicio,
             fechaCierre: beca.fechaCierre,
             requisitos: beca.requisitos,
-            urlOriginal: beca.urlOriginal,
-            fuente: beca.fuente,
-            estado: beca.estado,
+            enlaceOficial: beca.urlOriginal,
+            estadoConvocatoria: beca.estado,
           };
 
           if (existing) {
@@ -111,7 +111,12 @@ async function main() {
             });
             updated++;
           } else {
-            await prisma.beca.create({ data: dbData });
+            await prisma.beca.create({
+              data: {
+                id: `SCRAP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                ...dbData,
+              },
+            });
             created++;
           }
         }

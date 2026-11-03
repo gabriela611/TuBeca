@@ -78,6 +78,7 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
     onApplyFilters({
       tipo: selectedNivel,
       categoria: selectedMotivo,
+      ciudad: selectedLugar,
       departamento: selectedLugar,
       cobertura: coberturaValue,
     });
@@ -351,7 +352,7 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
             </div>
           )}
 
-          {/* STEP 3: Región / Dónde quieres estudiar */}
+          {/* STEP 3: Ciudad / Dónde quieres estudiar */}
           {step === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div>
@@ -359,18 +360,18 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                   ¿Dónde quieres estudiar?
                 </h2>
                 <p style={{ fontSize: '0.875rem', color: 'var(--ink-500)', marginTop: '4px' }}>
-                  Elige la región donde buscas sede o si prefieres becas de alcance nacional.
+                  Elige la ciudad donde buscas sede o si prefieres becas de alcance nacional.
                 </p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 {[
-                  { id: '', label: 'Toda Colombia', sub: 'Becas nacionales y virtuales' },
-                  { id: 'Cundinamarca', label: 'Bogotá D.C. / Cundinamarca', sub: 'Uniandes, UNAL, Javeriana, Rosario' },
-                  { id: 'Antioquia', label: 'Antioquia / Medellín', sub: 'UdeA, EAFIT, UNAL Medellín' },
-                  { id: 'Valle del Cauca', label: 'Valle del Cauca / Cali', sub: 'Univalle, Javeriana Cali' },
-                  { id: 'Atlántico', label: 'Atlántico / Barranquilla', sub: 'Uninorte, U. del Atlántico' },
-                  { id: 'Santander', label: 'Santander / Bucaramanga', sub: 'UIS, UNAB, UDES' },
+                  { id: '', label: 'Toda Colombia', sub: 'Todas las ciudades universitarias' },
+                  { id: 'Medellín', label: 'Medellín', sub: 'EAFIT, UPB, U. de Medellín, CES' },
+                  { id: 'Bogotá', label: 'Bogotá D.C.', sub: 'Uniandes, UNAL, Javeriana, Rosario' },
+                  { id: 'Cali', label: 'Cali', sub: 'Univalle, Javeriana Cali, Icesi' },
+                  { id: 'Barranquilla', label: 'Barranquilla', sub: 'Uninorte, U. del Atlántico' },
+                  { id: 'Bucaramanga', label: 'Bucaramanga', sub: 'UIS, UNAB, UDES' },
                 ].map((item) => {
                   const isSelected = selectedLugar === item.id;
                   return (

@@ -21,11 +21,7 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            becas: {
-              where: {
-                estado: { in: ['activa', 'proxima'] },
-              },
-            },
+            becas: true,
           },
         },
       },

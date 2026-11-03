@@ -96,7 +96,7 @@ export function ColombiaMap({
             Mapa Universitario de Colombia
           </h2>
           <p style={{ fontSize: '0.8125rem', color: 'var(--ink-500)', marginTop: '4px' }}>
-            Haz clic en cualquier departamento o centro universitario para ver las becas de esa región.
+            Haz clic en cualquier departamento o centro universitario para ver las becas de esa ciudad.
           </p>
         </div>
 
@@ -275,19 +275,19 @@ export function ColombiaMap({
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.8125rem', color: 'var(--ink-500)', fontWeight: 500 }}>
-                {beca.universidad?.nombre || 'Nacional'}
+                {typeof beca.universidad === 'string' ? beca.universidad : 'Universidad'}
               </span>
               <span style={{ fontSize: '0.8125rem', color: 'var(--ink-500)', fontWeight: 600 }}>
-                {beca.porcentajeCobertura || (beca.cobertura === 'total' ? 100 : 50)}% Cobertura
+                Cobertura
               </span>
             </div>
 
             <h4 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--ink-900)' }}>
-              {beca.titulo}
+              {beca.nombreBeca || beca.titulo}
             </h4>
 
             <p style={{ fontSize: '0.8125rem', color: 'var(--ink-700)', lineHeight: 1.4 }}>
-              {beca.descripcion.slice(0, 120)}...
+              {(beca.descripcion || '').slice(0, 120)}...
             </p>
           </div>
         ))}

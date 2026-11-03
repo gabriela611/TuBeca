@@ -7,6 +7,7 @@ export interface FilterState {
   tipo: string;
   cobertura: string;
   estado: string;
+  ciudad: string;
   departamento: string;
   universidadTipo: string;
   categoria: string;
@@ -18,7 +19,8 @@ interface FiltersSidebarProps {
   onResetFilters: () => void;
   totalFiltered: number;
   totalCount: number;
-  departamentos: string[];
+  ciudades: string[];
+  departamentos?: string[];
   categorias: string[];
 }
 
@@ -28,13 +30,15 @@ export function FiltersSidebar({
   onResetFilters,
   totalFiltered,
   totalCount,
+  ciudades,
   departamentos,
   categorias,
 }: FiltersSidebarProps) {
+  const activeCity = filters.ciudad || filters.departamento || '';
   const hasActiveFilters =
     filters.tipo !== '' ||
     filters.cobertura !== '' ||
-    filters.departamento !== '' ||
+    activeCity !== '' ||
     filters.categoria !== '';
 
   const tipoOptions = [
@@ -50,6 +54,8 @@ export function FiltersSidebar({
     { id: 'total', label: '100% Total' },
     { id: 'parcial', label: 'Parcial' },
   ];
+
+  const availableCities = ciudades && ciudades.length > 0 ? ciudades : departamentos || [];
 
   return (
     <aside
@@ -103,20 +109,26 @@ export function FiltersSidebar({
         )}
       </div>
 
-      {/* Results pill */}
+      {/* Counter Tag */}
       <div
         style={{
+          padding: '8px 12px',
+          backgroundColor: 'var(--surface-subtle)',
+          borderRadius: 'var(--radius-sm)',
           fontSize: '0.8125rem',
-          color: 'var(--ink-500)',
+          color: 'var(--ink-700)',
           display: 'flex',
           justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
         <span>Convocatorias:</span>
-        <strong style={{ color: 'var(--ink-900)' }}>{totalFiltered} de {totalCount}</strong>
+        <strong style={{ color: 'var(--brand-700)' }}>
+          {totalFiltered} de {totalCount}
+        </strong>
       </div>
 
-      {/* 1. Nivel de Estudio */}
+      {/* 1. Nivel de estudio */}
       <section>
         <label
           style={{
@@ -129,9 +141,9 @@ export function FiltersSidebar({
             marginBottom: '8px',
           }}
         >
-          Nivel de Estudio
+          Nivel Académico
         </label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {tipoOptions.map((opt) => {
             const isSelected = filters.tipo === opt.id;
             return (
@@ -139,17 +151,23 @@ export function FiltersSidebar({
                 key={opt.id}
                 onClick={() => onFilterChange('tipo', opt.id)}
                 style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '7px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.8125rem',
-                  fontWeight: isSelected ? 700 : 500,
-                  color: isSelected ? 'var(--brand-700)' : 'var(--ink-700)',
-                  backgroundColor: isSelected ? 'var(--brand-50)' : 'transparent',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  padding: '7px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.8125rem',
+                  fontWeight: isSelected ? 600 : 500,
+                  color: isSelected ? 'var(--brand-700)' : 'var(--ink-700)',
+                  backgroundColor: isSelected ? 'var(--brand-50)' : 'transparent',
+                  textAlign: 'left',
+                  transition: 'background-color 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--surface-subtle)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
                 <span>{opt.label}</span>
@@ -175,7 +193,7 @@ export function FiltersSidebar({
         >
           Cobertura
         </label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {coberturaOptions.map((opt) => {
             const isSelected = filters.cobertura === opt.id;
             return (
@@ -183,17 +201,23 @@ export function FiltersSidebar({
                 key={opt.id}
                 onClick={() => onFilterChange('cobertura', opt.id)}
                 style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '7px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.8125rem',
-                  fontWeight: isSelected ? 700 : 500,
-                  color: isSelected ? 'var(--brand-700)' : 'var(--ink-700)',
-                  backgroundColor: isSelected ? 'var(--brand-50)' : 'transparent',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  padding: '7px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.8125rem',
+                  fontWeight: isSelected ? 600 : 500,
+                  color: isSelected ? 'var(--brand-700)' : 'var(--ink-700)',
+                  backgroundColor: isSelected ? 'var(--brand-50)' : 'transparent',
+                  textAlign: 'left',
+                  transition: 'background-color 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--surface-subtle)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
                 <span>{opt.label}</span>
@@ -204,7 +228,7 @@ export function FiltersSidebar({
         </div>
       </section>
 
-      {/* 3. Región */}
+      {/* 3. Ciudad de la universidad */}
       <section>
         <label
           style={{
@@ -217,11 +241,14 @@ export function FiltersSidebar({
             marginBottom: '8px',
           }}
         >
-          Región
+          Ciudad de la universidad
         </label>
         <select
-          value={filters.departamento}
-          onChange={(e) => onFilterChange('departamento', e.target.value)}
+          value={activeCity}
+          onChange={(e) => {
+            onFilterChange('ciudad', e.target.value);
+            onFilterChange('departamento', e.target.value);
+          }}
           style={{
             width: '100%',
             padding: '8px 10px',
@@ -233,10 +260,10 @@ export function FiltersSidebar({
             outline: 'none',
           }}
         >
-          <option value="">Toda Colombia</option>
-          {departamentos.map((dept) => (
-            <option key={dept} value={dept}>
-              {dept}
+          <option value="">Todas las ciudades</option>
+          {availableCities.map((city) => (
+            <option key={city} value={city}>
+              {city}
             </option>
           ))}
         </select>
@@ -255,7 +282,7 @@ export function FiltersSidebar({
             marginBottom: '8px',
           }}
         >
-          Enfoque
+          Enfoque o Categoría
         </label>
         <select
           value={filters.categoria}

@@ -4,17 +4,16 @@ import { prisma } from '@/lib/db/prisma';
 /**
  * GET /api/becas
  *
- * Lista becas con filtros opcionales:
- * - tipo: pregrado | posgrado | doctorado | tecnico
- * - estado: activa | vencida | proxima
- * - ciudad: nombre de la ciudad
- * - departamento: nombre del departamento
+ * Lista becas con el nuevo esquema de Medellín y área metropolitana.
+ * Filtros opcionales:
+ * - tipo / nivel: pregrado | posgrado | maestría | doctorado | técnico
+ * - estado: abierta | cerrada
+ * - municipio / ciudad: nombre de municipio
  * - universidad: nombre de la universidad
- * - fuente: icetex | colfuturo | universidad | mineducacion | manual
  * - cobertura: total | parcial
- * - q: búsqueda por texto en título y descripción
+ * - q: búsqueda textual
  * - page: número de página (default: 1)
- * - limit: resultados por página (default: 12)
+ * - limit: resultados por página (default: 50)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -22,36 +21,51 @@ export async function GET(request: NextRequest) {
 
     const tipo = searchParams.get('tipo');
     const estado = searchParams.get('estado');
-    const ciudad = searchParams.get('ciudad');
-    const departamento = searchParams.get('departamento');
+    const ciudad = searchParams.get('ciudad') || searchParams.get('municipio');
     const universidad = searchParams.get('universidad');
-    const fuente = searchParams.get('fuente');
     const cobertura = searchParams.get('cobertura');
     const query = searchParams.get('q');
     const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = Math.min(parseInt(searchParams.get('limit') || '12', 10), 50);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 50);
     const skip = (page - 1) * limit;
 
-    // Construir filtros dinámicamente
     const where: Record<string, unknown> = {};
 
-    if (tipo) where.tipo = tipo;
-    if (estado) where.estado = estado;
-    if (ciudad) where.ciudad = { contains: ciudad };
-    if (departamento) where.departamento = { contains: departamento };
-    if (fuente) where.fuente = fuente;
-    if (cobertura) where.cobertura = cobertura;
+    if (tipo) {
+      where.nivelAcademico = { contains: tipo };
+    }
 
-    if (universidad) {
-      where.universidad = {
-        nombre: { contains: universidad },
+    if (estado) {
+      where.estadoConvocatoria = { contains: estado };
+    }
+
+    // El filtro "ciudad" filtra por la ciudad de la sede de la universidad
+    if (ciudad || universidad) {
+      where.universidadRel = {
+        ...(ciudad ? { ciudad: { contains: ciudad } } : {}),
+        ...(universidad ? { nombre: { contains: universidad } } : {}),
       };
+    }
+
+    if (cobertura) {
+      if (cobertura.toLowerCase() === 'total') {
+        where.OR = [
+          { porcentaje: { contains: '100' } },
+          { tipoFinanciacion: { contains: 'Total' } },
+          { cobertura: { contains: '100' } },
+        ];
+      } else if (cobertura.toLowerCase() === 'parcial') {
+        where.tipoFinanciacion = { contains: 'Parcial' };
+      }
     }
 
     if (query) {
       where.OR = [
-        { titulo: { contains: query } },
+        { nombreBeca: { contains: query } },
         { descripcion: { contains: query } },
+        { universidad: { contains: query } },
+        { requisitos: { contains: query } },
+        { poblacionObjetivo: { contains: query } },
       ];
     }
 
@@ -59,7 +73,7 @@ export async function GET(request: NextRequest) {
       prisma.beca.findMany({
         where,
         include: {
-          universidad: {
+          universidadRel: {
             select: {
               id: true,
               nombre: true,
@@ -77,8 +91,7 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy: [
-          { estado: 'asc' }, // activa primero
-          { fechaCierre: 'asc' }, // más próximas a cerrar primero
+          { idBeca: 'asc' },
         ],
         skip,
         take: limit,
@@ -86,8 +99,25 @@ export async function GET(request: NextRequest) {
       prisma.beca.count({ where }),
     ]);
 
+    // Format data with both clean typed properties and aliases for seamless compatibility
+    const formattedBecas = becas.map((b) => ({
+      ...b,
+      // Backward compatibility aliases
+      titulo: b.nombreBeca,
+      tipo: b.nivelAcademico || 'Pregrado',
+      ciudad: b.municipioAplicacion,
+      departamento: 'Antioquia',
+      urlOriginal: b.enlaceOficial || '',
+      fuente: 'Universidad',
+      estado: b.estadoConvocatoria?.toLowerCase().includes('abierta')
+        ? 'activa'
+        : b.estadoConvocatoria?.toLowerCase().includes('cerrada')
+        ? 'vencida'
+        : 'proxima',
+    }));
+
     return NextResponse.json({
-      data: becas,
+      data: formattedBecas,
       pagination: {
         page,
         limit,

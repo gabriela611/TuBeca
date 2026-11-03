@@ -5,26 +5,46 @@ import { Building2, MapPin, Heart, AlertCircle } from 'lucide-react';
 
 export interface BecaItem {
   id: string;
-  titulo: string;
-  descripcion: string;
-  universidad?: {
+  idBeca?: string;
+  universidad: string;
+  universidadRel?: {
     id: string;
     nombre: string;
     ciudad: string;
     tipo: string;
   } | null;
+  municipioAplicacion?: string | null;
+  nombreBeca: string;
+  nivelAcademico?: string | null;
+  areaConocimiento?: string | null;
+  modalidad?: string | null;
+  descripcion?: string | null;
+  tipoFinanciacion?: string | null;
+  porcentaje?: string | null;
+  valorBecaCop?: number | null;
+  cobertura?: string | null;
+  edadMinima?: number | null;
+  edadMaxima?: number | null;
+  promedioMinimo?: number | null;
+  estratoSocioeconomico?: string | null;
+  poblacionObjetivo?: string | null;
+  requisitos?: string | null;
+  documentosRequeridos?: string | null;
+  fechaApertura?: string | Date | null;
+  fechaCierre?: string | Date | null;
+  estadoConvocatoria?: string | null;
+  enlaceOficial?: string | null;
+  observaciones?: string | null;
+  estadoCalidadDato?: string | null;
+
+  // Compatibility fields
+  titulo?: string;
+  tipo?: string;
   ciudad?: string | null;
   departamento?: string | null;
-  tipo: string;
-  modalidad?: string | null;
-  cobertura?: string | null;
+  urlOriginal?: string;
+  estado?: string;
   porcentajeCobertura?: number | null;
-  fechaInicio?: string | null;
-  fechaCierre?: string | null;
-  requisitos?: string | null;
-  urlOriginal: string;
-  fuente: string;
-  estado: string;
   categorias?: Array<{
     categoria: {
       id: string;
@@ -45,7 +65,44 @@ interface ScholarshipListProps {
 }
 
 /**
- * Anillo animado de porcentaje de cobertura con centrado óptico
+ * Helper to parse a numeric percentage (0-100) from the scholarship data
+ */
+export function parseCoveragePercentage(
+  porcentaje?: string | null,
+  tipoFinanciacion?: string | null,
+  cobertura?: string | null,
+  porcentajeCobertura?: number | null
+): number {
+  if (typeof porcentajeCobertura === 'number' && porcentajeCobertura > 0) {
+    return Math.min(Math.round(porcentajeCobertura), 100);
+  }
+  if (porcentaje) {
+    // If range like "40 %–100 %", extract upper bound
+    const rangeMatch = porcentaje.match(/[–-]\s*(\d+)/);
+    if (rangeMatch) {
+      const val = parseInt(rangeMatch[1], 10);
+      if (!isNaN(val) && val > 0 && val <= 100) return val;
+    }
+    const pctMatch = porcentaje.match(/(\d+)\s*%/);
+    if (pctMatch) {
+      const val = parseInt(pctMatch[1], 10);
+      if (!isNaN(val) && val > 0 && val <= 100) return val;
+    }
+    const anyDigit = porcentaje.match(/\d+/);
+    if (anyDigit) {
+      const val = parseInt(anyDigit[0], 10);
+      if (!isNaN(val) && val > 0 && val <= 100) return val;
+    }
+  }
+
+  const text = `${tipoFinanciacion || ''} ${cobertura || ''}`.toLowerCase();
+  if (text.includes('total') || text.includes('100')) return 100;
+  if (text.includes('parcial') || text.includes('sostenimiento') || text.includes('50')) return 50;
+  return 100;
+}
+
+/**
+ * Anillo animado de porcentaje de cobertura con centrado óptico y texto adyacente
  */
 function CoverageRing({ percentage, isTotal }: { percentage: number; isTotal: boolean }) {
   const size = 38;
@@ -168,65 +225,67 @@ export function ScholarshipList({
           flex: 1,
           minHeight: 0,
           height: '100%',
-          overflowY: 'auto',
-          padding: '60px 24px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
+          padding: '32px',
           textAlign: 'center',
           color: 'var(--ink-500)',
         }}
       >
         <div
           style={{
-            width: '48px',
-            height: '48px',
+            width: '44px',
+            height: '44px',
             borderRadius: '50%',
             backgroundColor: 'var(--surface-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '16px',
             color: 'var(--ink-400)',
+            marginBottom: '12px',
           }}
         >
-          {showingFavoritesOnly ? <Heart size={24} /> : <AlertCircle size={24} />}
+          <AlertCircle size={22} />
         </div>
         <h3
           style={{
             fontSize: '1rem',
             fontWeight: 700,
             color: 'var(--ink-900)',
-            marginBottom: '6px',
+            marginBottom: '4px',
           }}
         >
-          {showingFavoritesOnly ? 'Aún no tienes becas guardadas' : 'No encontramos becas con estos filtros'}
+          {showingFavoritesOnly ? 'No tienes becas guardadas' : 'No se encontraron becas'}
         </h3>
-        <p style={{ fontSize: '0.875rem', maxWidth: '320px', color: 'var(--ink-500)', lineHeight: 1.5 }}>
+        <p
+          style={{
+            fontSize: '0.8125rem',
+            maxWidth: '280px',
+            lineHeight: 1.5,
+            color: 'var(--ink-500)',
+            marginBottom: '14px',
+          }}
+        >
           {showingFavoritesOnly
-            ? 'Guarda becas con el icono de corazón para tenerlas a la mano y comparar sus beneficios.'
-            : 'Prueba a reiniciar los filtros o ajustar el nivel educativo.'}
+            ? 'Guarda becas con el icono de corazón para tenerlas siempre a mano.'
+            : 'Prueba ajustando los filtros o el término de búsqueda.'}
         </p>
-
         {showingFavoritesOnly && onClearFavoritesFilter && (
           <button
             onClick={onClearFavoritesFilter}
             style={{
-              marginTop: '16px',
-              padding: '8px 18px',
-              backgroundColor: 'var(--brand-600)',
-              color: '#ffffff',
-              borderRadius: 'var(--radius-sm)',
               fontSize: '0.8125rem',
-              fontWeight: 700,
-              boxShadow: 'var(--shadow-sm)',
-              transition: 'background-color 0.15s ease',
+              fontWeight: 600,
+              color: 'var(--brand-700)',
+              backgroundColor: 'var(--surface-card)',
+              border: '1px solid var(--border-subtle)',
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-sm)',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-700)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-600)')}
           >
-            Explorar todas las convocatorias
+            Ver todas las becas
           </button>
         )}
       </div>
@@ -247,12 +306,25 @@ export function ScholarshipList({
       }}
     >
       {becas.map((beca) => {
-        const isSelected = selectedBecaId === beca.id;
+        const isSelected = selectedBecaId === beca.id || selectedBecaId === beca.idBeca;
         const isFav = favorites.has(beca.id);
-        const percentage = beca.porcentajeCobertura || (beca.cobertura === 'total' ? 100 : 50);
-        const isTotal = beca.cobertura === 'total' || percentage >= 100;
-        const uniName = beca.universidad?.nombre || (beca.fuente === 'icetex' ? 'ICETEX' : 'Nacional');
-        const location = beca.ciudad || beca.departamento || 'Nacional';
+        const percentage = parseCoveragePercentage(
+          beca.porcentaje,
+          beca.tipoFinanciacion,
+          beca.cobertura,
+          beca.porcentajeCobertura
+        );
+        const isTotal =
+          percentage >= 100 ||
+          beca.cobertura === 'total' ||
+          Boolean(beca.tipoFinanciacion?.toLowerCase().includes('total'));
+        
+        const uniName =
+          beca.universidad ||
+          beca.universidadRel?.nombre ||
+          'Universidad';
+
+        const scholarshipTitle = beca.nombreBeca || beca.titulo || 'Beca';
 
         return (
           <div
@@ -305,7 +377,7 @@ export function ScholarshipList({
               }
             }}
           >
-            {/* Top Line: Universidad + Favorite Button */}
+            {/* Top Line: Universidad + Favorite Button (Minimalist: only uni, title, coverage) */}
             <div
               style={{
                 display: 'flex',
@@ -324,13 +396,8 @@ export function ScholarshipList({
                   color: 'var(--ink-500)',
                 }}
               >
-                <Building2 size={14} style={{ color: 'var(--brand-600)' }} />
+                <Building2 size={14} style={{ color: 'var(--brand-600)', flexShrink: 0 }} />
                 <span>{uniName}</span>
-                <span style={{ color: 'var(--ink-300)' }}>•</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 500 }}>
-                  <MapPin size={12} />
-                  {location}
-                </span>
               </div>
 
               {/* Save / Favorite Heart Button */}
@@ -346,11 +413,12 @@ export function ScholarshipList({
                   color: isFav ? 'var(--favorite-color)' : 'var(--ink-400)',
                   backgroundColor: isFav ? 'var(--favorite-bg)' : 'transparent',
                   transition: 'transform 0.15s ease, background-color 0.15s ease',
+                  flexShrink: 0,
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.15)')}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                 title={isFav ? 'Quitar de favoritas' : 'Guardar en favoritas'}
-                aria-label={isFav ? `Quitar ${beca.titulo} de favoritas` : `Guardar ${beca.titulo} en favoritas`}
+                aria-label={isFav ? `Quitar ${scholarshipTitle} de favoritas` : `Guardar ${scholarshipTitle} en favoritas`}
               >
                 <Heart size={16} fill={isFav ? 'currentColor' : 'none'} strokeWidth={isFav ? 0 : 2} />
               </button>
@@ -366,10 +434,10 @@ export function ScholarshipList({
                 letterSpacing: '-0.015em',
               }}
             >
-              {beca.titulo}
+              {scholarshipTitle}
             </h3>
 
-            {/* Bottom Row: Animated Coverage Ring Badge */}
+            {/* Bottom Row: Animated Coverage Ring Badge + plain "Cobertura" text */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px' }}>
               <CoverageRing percentage={percentage} isTotal={isTotal} />
             </div>

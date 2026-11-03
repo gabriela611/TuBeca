@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { FiltersSidebar, type FilterState } from '@/components/FiltersSidebar';
-import { ScholarshipList, type BecaItem } from '@/components/ScholarshipList';
+import { ScholarshipList, type BecaItem, parseCoveragePercentage } from '@/components/ScholarshipList';
 import { ScholarshipDetail } from '@/components/ScholarshipDetail';
 import { ColombiaMap } from '@/components/ColombiaMap';
 import { OnboardingModal } from '@/components/OnboardingModal';
@@ -27,6 +27,7 @@ export default function Home() {
     tipo: '',
     cobertura: '',
     estado: '',
+    ciudad: '',
     departamento: '',
     universidadTipo: '',
     categoria: '',
@@ -103,44 +104,62 @@ export default function Home() {
       // 1. Text search
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const matchTitle = beca.titulo.toLowerCase().includes(query);
-        const matchDesc = beca.descripcion.toLowerCase().includes(query);
-        const matchUni = beca.universidad?.nombre?.toLowerCase().includes(query);
-        const matchCity = beca.ciudad?.toLowerCase().includes(query);
-        if (!matchTitle && !matchDesc && !matchUni && !matchCity) {
+        const matchTitle = (beca.nombreBeca || beca.titulo || '').toLowerCase().includes(query);
+        const matchDesc = (beca.descripcion || '').toLowerCase().includes(query);
+        const matchUni = (beca.universidad || beca.universidadRel?.nombre || '').toLowerCase().includes(query);
+        const matchCity = (beca.universidadRel?.ciudad || beca.municipioAplicacion || '').toLowerCase().includes(query);
+        const matchReq = (beca.requisitos || '').toLowerCase().includes(query);
+        const matchPob = (beca.poblacionObjetivo || '').toLowerCase().includes(query);
+        if (!matchTitle && !matchDesc && !matchUni && !matchCity && !matchReq && !matchPob) {
           return false;
         }
       }
 
       // 2. Nivel de estudio
-      if (filters.tipo && beca.tipo.toLowerCase() !== filters.tipo.toLowerCase()) {
-        return false;
+      if (filters.tipo) {
+        const nivel = (beca.nivelAcademico || beca.tipo || '').toLowerCase();
+        if (!nivel.includes(filters.tipo.toLowerCase())) {
+          return false;
+        }
       }
 
       // 3. Cobertura
       if (filters.cobertura) {
-        const isTotal = beca.cobertura === 'total' || (beca.porcentajeCobertura ?? 0) >= 100;
+        const percentage = parseCoveragePercentage(
+          beca.porcentaje,
+          beca.tipoFinanciacion,
+          beca.cobertura,
+          beca.porcentajeCobertura
+        );
+        const isTotal =
+          percentage >= 100 ||
+          beca.cobertura === 'total' ||
+          Boolean(beca.tipoFinanciacion?.toLowerCase().includes('total'));
         if (filters.cobertura === 'total' && !isTotal) return false;
         if (filters.cobertura === 'parcial' && isTotal) return false;
       }
 
       // 4. Estado
-      if (filters.estado && beca.estado !== filters.estado) {
-        return false;
+      if (filters.estado) {
+        const estado = (beca.estadoConvocatoria || beca.estado || '').toLowerCase();
+        if (!estado.includes(filters.estado.toLowerCase())) {
+          return false;
+        }
       }
 
-      // 5. Departamento / Región
-      if (filters.departamento) {
-        const matchDept =
-          beca.departamento?.toLowerCase().includes(filters.departamento.toLowerCase()) ||
-          beca.ciudad?.toLowerCase().includes(filters.departamento.toLowerCase()) ||
-          beca.departamento === 'Todos';
-        if (!matchDept) return false;
+      // 5. Ciudad de la universidad (no de cada beca)
+      const selectedCity = filters.ciudad || filters.departamento;
+      if (selectedCity) {
+        const uniCity = (beca.universidadRel?.ciudad || '').toLowerCase();
+        if (!uniCity.includes(selectedCity.toLowerCase())) {
+          return false;
+        }
       }
 
       // 6. Tipo de universidad (pública / privada)
       if (filters.universidadTipo) {
-        if (beca.universidad?.tipo !== filters.universidadTipo) {
+        const uTipo = beca.universidadRel?.tipo || 'privada';
+        if (uTipo !== filters.universidadTipo) {
           return false;
         }
       }
@@ -178,6 +197,7 @@ export default function Home() {
       tipo: '',
       cobertura: '',
       estado: '',
+      ciudad: '',
       departamento: '',
       universidadTipo: '',
       categoria: '',
@@ -191,6 +211,9 @@ export default function Home() {
     setFilters((prev) => ({
       ...prev,
       ...newFilters,
+      // Ensure both ciudad and departamento are synced
+      ...(newFilters.departamento ? { ciudad: newFilters.departamento } : {}),
+      ...(newFilters.ciudad ? { departamento: newFilters.ciudad } : {}),
     }));
     try {
       localStorage.setItem('tubeca_onboarding_done', 'true');
@@ -199,12 +222,12 @@ export default function Home() {
     }
   };
 
-  // Unique departments for filter dropdown
-  const departamentos = useMemo(() => {
+  // Ciudades únicas de las universidades (no de cada beca individual)
+  const ciudades = useMemo(() => {
     const set = new Set<string>();
     allBecas.forEach((b) => {
-      if (b.departamento && b.departamento !== 'Todos') set.add(b.departamento);
-      if (b.ciudad && b.ciudad !== 'Nacional') set.add(b.ciudad);
+      const city = b.universidadRel?.ciudad;
+      if (city) set.add(city);
     });
     return Array.from(set).sort();
   }, [allBecas]);
@@ -242,7 +265,7 @@ export default function Home() {
           onResetFilters={handleResetFilters}
           totalFiltered={filteredBecas.length}
           totalCount={allBecas.length}
-          departamentos={departamentos}
+          ciudades={ciudades}
           categorias={categorias}
         />
 
@@ -271,8 +294,11 @@ export default function Home() {
         ) : (
           <main style={{ display: 'flex', flex: 1, minHeight: 0, height: '100%', overflow: 'hidden', background: 'var(--surface-base-gradient)' }}>
             <ColombiaMap
-              selectedDepartamento={filters.departamento}
-              onSelectDepartamento={(dept) => handleFilterChange('departamento', dept)}
+              selectedDepartamento={filters.ciudad || filters.departamento}
+              onSelectDepartamento={(city) => {
+                handleFilterChange('ciudad', city);
+                handleFilterChange('departamento', city);
+              }}
               becas={filteredBecas}
               onSelectBeca={(b) => {
                 setSelectedBeca(b);
