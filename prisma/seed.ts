@@ -122,12 +122,84 @@ async function main() {
     },
   });
 
+  const uniJaveriana = await prisma.universidad.upsert({
+    where: { nombre: 'Pontificia Universidad Javeriana' },
+    update: {
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      sitioWeb: 'https://www.javeriana.edu.co',
+      tipo: 'privada',
+    },
+    create: {
+      nombre: 'Pontificia Universidad Javeriana',
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      sitioWeb: 'https://www.javeriana.edu.co',
+      tipo: 'privada',
+    },
+  });
+
+  const uniRosario = await prisma.universidad.upsert({
+    where: { nombre: 'Universidad del Rosario' },
+    update: {
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      sitioWeb: 'https://urosario.edu.co',
+      tipo: 'privada',
+    },
+    create: {
+      nombre: 'Universidad del Rosario',
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      sitioWeb: 'https://urosario.edu.co',
+      tipo: 'privada',
+    },
+  });
+
+  const uniExternado = await prisma.universidad.upsert({
+    where: { nombre: 'Universidad Externado de Colombia' },
+    update: {
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      sitioWeb: 'https://www.uexternado.edu.co',
+      tipo: 'privada',
+    },
+    create: {
+      nombre: 'Universidad Externado de Colombia',
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      sitioWeb: 'https://www.uexternado.edu.co',
+      tipo: 'privada',
+    },
+  });
+
+  const uniIcesi = await prisma.universidad.upsert({
+    where: { nombre: 'Universidad Icesi' },
+    update: {
+      ciudad: 'Cali',
+      departamento: 'Valle del Cauca',
+      sitioWeb: 'https://www.icesi.edu.co',
+      tipo: 'privada',
+    },
+    create: {
+      nombre: 'Universidad Icesi',
+      ciudad: 'Cali',
+      departamento: 'Valle del Cauca',
+      sitioWeb: 'https://www.icesi.edu.co',
+      tipo: 'privada',
+    },
+  });
+
   const universityMap: Record<string, string> = {
     'Universidad EAFIT': uniEafit.id,
     'Universidad Pontificia Bolivariana (UPB)': uniUpb.id,
     'Universidad de Medellín': uniUdem.id,
     'Universidad CES': uniCes.id,
     'Universidad de los Andes': uniAndes.id,
+    'Pontificia Universidad Javeriana': uniJaveriana.id,
+    'Universidad del Rosario': uniRosario.id,
+    'Universidad Externado de Colombia': uniExternado.id,
+    'Universidad Icesi': uniIcesi.id,
   };
 
   // 2. Seed Categorías
@@ -184,13 +256,13 @@ async function main() {
     if (text.includes('deport')) {
       cats.push('Deporte');
     }
-    if (text.includes('indígen') || text.includes('afro') || text.includes('etnia')) {
+    if (text.includes('indígen') || text.includes('afro') || text.includes('etnia') || text.includes('étnic') || text.includes('etnic') || text.includes('narp') || text.includes('palenqu')) {
       cats.push('Comunidades Étnicas');
     }
     if (text.includes('investiga') || text.includes('doctorado')) {
       cats.push('Investigación');
     }
-    if (text.includes('municipio') || text.includes('convenio') || text.includes('fundación') || text.includes('antioquia') || text.includes('alianza')) {
+    if (text.includes('municipio') || text.includes('convenio') || text.includes('fundación') || text.includes('antioquia') || text.includes('alianza') || text.includes('colsubsidio') || text.includes('compensación')) {
       cats.push('Alianzas Regionales');
     }
 

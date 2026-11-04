@@ -50,19 +50,21 @@ export default function Home() {
 
   // Load favorites and check onboarding status from localStorage
   useEffect(() => {
-    try {
-      const savedFavs = localStorage.getItem('tubeca_favoritos');
-      if (savedFavs) {
-        setFavorites(new Set(JSON.parse(savedFavs)));
-      }
+    queueMicrotask(() => {
+      try {
+        const savedFavs = localStorage.getItem('tubeca_favoritos');
+        if (savedFavs) {
+          setFavorites(new Set(JSON.parse(savedFavs)));
+        }
 
-      const onboardingDone = localStorage.getItem('tubeca_onboarding_done');
-      if (!onboardingDone) {
-        setIsOnboardingOpen(true);
+        const onboardingDone = localStorage.getItem('tubeca_onboarding_done');
+        if (!onboardingDone) {
+          setIsOnboardingOpen(true);
+        }
+      } catch (e) {
+        console.warn('Could not read localStorage:', e);
       }
-    } catch (e) {
-      console.warn('Could not read localStorage:', e);
-    }
+    });
   }, []);
 
   // Fetch initial scholarships from API
@@ -70,7 +72,7 @@ export default function Home() {
     async function loadBecas() {
       try {
         setIsLoading(true);
-        const res = await fetch('/api/becas?limit=50');
+        const res = await fetch('/api/becas?limit=100');
         const json = await res.json();
         if (json.data && Array.isArray(json.data)) {
           setAllBecas(json.data);
@@ -177,39 +179,31 @@ export default function Home() {
     return allBecas.filter((b) => favorites.has(b.id));
   }, [allBecas, favorites]);
 
-  // Keep cardIndex clamped when filtered list changes
-  useEffect(() => {
-    if (filteredBecas.length === 0) {
-      setCardIndex(0);
-    } else if (cardIndex >= filteredBecas.length) {
-      setCardIndex(0);
-    }
+  // Safe clamped index without requiring an effect
+  const safeCardIndex = useMemo(() => {
+    if (filteredBecas.length === 0) return 0;
+    return Math.min(cardIndex, filteredBecas.length - 1);
   }, [filteredBecas.length, cardIndex]);
 
   // Active card in Tinder explore mode
   const selectedBeca = useMemo(() => {
     if (filteredBecas.length === 0) return null;
-    return filteredBecas[cardIndex] || null;
-  }, [filteredBecas, cardIndex]);
+    return filteredBecas[safeCardIndex] || null;
+  }, [filteredBecas, safeCardIndex]);
 
-  // Keep selected saved beca in sync
-  useEffect(() => {
-    if (savedBecas.length > 0) {
-      if (!selectedSavedBecaId || !savedBecas.some((b) => b.id === selectedSavedBecaId)) {
-        setSelectedSavedBecaId(savedBecas[0].id);
-      }
-    } else {
-      setSelectedSavedBecaId(null);
-    }
+  // Active saved scholarship derived without cascading effects
+  const effectiveSavedBeca = useMemo(() => {
+    if (savedBecas.length === 0) return null;
+    return savedBecas.find((b) => b.id === selectedSavedBecaId) || savedBecas[0] || null;
   }, [savedBecas, selectedSavedBecaId]);
 
   // Active detail scholarship: either selected from saved list or active from Tinder deck
   const activeDetailBeca = useMemo(() => {
     if (showingFavorites) {
-      return savedBecas.find((b) => b.id === selectedSavedBecaId) || savedBecas[0] || null;
+      return effectiveSavedBeca;
     }
     return selectedBeca;
-  }, [showingFavorites, savedBecas, selectedSavedBecaId, selectedBeca]);
+  }, [showingFavorites, effectiveSavedBeca, selectedBeca]);
 
   // Save scholarship to favorites and advance in Tinder deck
   const handleSaveBeca = useCallback(
@@ -224,6 +218,10 @@ export default function Home() {
         }
         return updated;
       });
+
+      if (e) {
+        triggerSaveConfetti(e);
+      }
 
       setHistory((prev) => [...prev, { id: beca.id, action: 'saved', index: cardIndex }]);
       setCardIndex((prev) => prev + 1);

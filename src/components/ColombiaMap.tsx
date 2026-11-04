@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MapPin, Building, Award, Check } from 'lucide-react';
 import type { BecaItem } from './ScholarshipList';
 
 interface ColombiaMapProps {

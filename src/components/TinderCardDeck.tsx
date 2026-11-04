@@ -96,7 +96,6 @@ function CoverageRingMini({ percentage }: { percentage: number }) {
 export function TinderCardDeck({
   becas,
   currentIndex,
-  onIndexChange,
   onSaveBeca,
   onDiscardBeca,
   onUndo,

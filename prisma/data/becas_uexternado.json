@@ -1,0 +1,66 @@
+{
+  "metadata": {
+    "titulo": "Becas Universidad Externado de Colombia (Bogotá D.C.)",
+    "total_becas": 2,
+    "descripcion": "Información estructurada de programas de apoyo financiero y becas de la Universidad Externado de Colombia en Bogotá."
+  },
+  "becas": [
+    {
+      "id_beca": "EXT-001",
+      "universidad": "Universidad Externado de Colombia",
+      "municipio_aplicacion": "Bogotá D.C.",
+      "nombre_beca": "Beca Excelencia Académica Prueba Saber 11",
+      "nivel_academico": "Pregrado",
+      "area_conocimiento": "Todos los programas de pregrado de la Universidad Externado de Colombia",
+      "modalidad": "Presencial",
+      "descripcion": "Reconoce y premia a los estudiantes que obtienen los mejores resultados en la prueba Saber 11°. Ofrece un apoyo financiero que cubre hasta el 50% del valor de la matrícula, con la posibilidad de aumentar hasta el 80% en casos excepcionales para quienes se ubiquen por encima del percentil 90.",
+      "tipo_financiacion": "Parcial",
+      "porcentaje": "Hasta 80 %",
+      "valor_beca_cop": null,
+      "cobertura": "Hasta el 50% de la matrícula ordinaria, con incremento de hasta el 80% para puntajes superiores al percentil 90. Aplica durante toda la carrera mediante renovación semestral con promedio >= 4.0.",
+      "edad_minima": null,
+      "edad_maxima": null,
+      "promedio_minimo": 4.0,
+      "estrato_socioeconomico": null,
+      "poblacion_objetivo": "Aspirantes con puntajes destacados en la prueba Saber 11° admitidos oficialmente a cualquier programa de pregrado de la institución.",
+      "requisitos": "Completar el proceso de admisión regular (inscripción y entrevista de facultad); ser admitido oficialmente antes del 2 de octubre de 2026; para mantener el beneficio, conservar un promedio académico semestral igual o superior a 4.0 en cada período académico.",
+      "documentos_requeridos": "Inscripción al programa de pregrado de elección, certificado oficial con puntaje y percentil en el examen ICFES Saber 11°, y entrevista de admisión programada por la facultad.",
+      "fecha_apertura": "2026-07-01",
+      "fecha_cierre": "2026-10-02",
+      "estado_convocatoria": "Abierta",
+      "enlace_oficial": "https://www.uexternado.edu.co/apoyo-financiero/becas/",
+      "fecha_actualizacion": "2026-11-04",
+      "estado_calidad_dato": "Verificado",
+      "observaciones": "El beneficio aplica durante toda la carrera sujeto a mantener promedio >= 4.0. Fecha límite de admisión: 2 de octubre de 2026. Publicación de resultados: 9 de octubre de 2026."
+    },
+    {
+      "id_beca": "EXT-002",
+      "universidad": "Universidad Externado de Colombia",
+      "municipio_aplicacion": "Bogotá D.C.",
+      "nombre_beca": "Beca Soy Imparable",
+      "nivel_academico": "Pregrado y Posgrado",
+      "area_conocimiento": "Programas participantes de pregrado y posgrado de la Universidad Externado de Colombia",
+      "modalidad": "Presencial",
+      "descripcion": "Diseñada para quienes han sido admitidos con excelencia académica comprobada pero aún no se han matriculado por carecer de suficientes recursos económicos. Otorga una beca del 50% del valor de la matrícula durante toda la duración del programa, complementable con créditos al 0% de interés condonables hasta un 40%.",
+      "tipo_financiacion": "Parcial",
+      "porcentaje": "50 %",
+      "valor_beca_cop": null,
+      "cobertura": "50% del valor de la matrícula durante toda la duración oficial del programa académico. Acceso adicional a financiación flexible al 0% condonable hasta el 40%.",
+      "edad_minima": null,
+      "edad_maxima": null,
+      "promedio_minimo": 4.0,
+      "estrato_socioeconomico": "Insuficiencia de recursos económicos demostrada",
+      "poblacion_objetivo": "Candidatos admitidos a pregrado o posgrado (incluye extranjeros residentes) que cumplan con criterios de excelencia académica y no cuenten con la capacidad económica para pagar el programa.",
+      "requisitos": "Haber sido admitido oficialmente y no haberse matriculado aún; demostrar insuficiencia de capacidad financiera para asumir el costo del programa; en pregrado: notas de colegio de los últimos dos periodos con promedio igual o superior a 4.0 (escala 1 a 5); en posgrado: promedio acumulado superior o igual a 3.8 en educación superior formal previa.",
+      "documentos_requeridos": "Formulario de postulación diligenciado con soportes socioeconómicos; carta de motivación de máximo 1.000 palabras dirigida al Comité de Becas; dos cartas de recomendación académica; certificado oficial de notas de los últimos dos períodos con promedio >= 4.0 (para pregrado) o histórico de notas con promedio >= 3.8 (para posgrado); certificados de premios, publicaciones o impacto social (si aplica).",
+      "fecha_apertura": "2026-07-23",
+      "fecha_cierre": "2026-11-25",
+      "estado_convocatoria": "Abierta (Convocatoria por cortes hasta el 25 de noviembre de 2026)",
+      "enlace_oficial": "https://www.uexternado.edu.co/landingpage/becas-soy-imparable/",
+      "fecha_actualizacion": "2026-11-04",
+      "estado_calidad_dato": "Verificado",
+      "observaciones": "Aplica por cortes continuas: 13ª corte (cierre 5-ago), 14ª (19-ago), 15ª (2-sep), 16ª (16-sep), 17ª (30-sep), 18ª (14-oct), 19ª (28-oct), 20ª (11-nov), 21ª corte (cierre final 25 de noviembre de 2026). No acumulable con otras ofertas institucionales."
+    }
+  ]
+}
+

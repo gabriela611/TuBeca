@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Building2, MapPin, Heart, AlertCircle } from 'lucide-react';
+import { Building2, Heart, AlertCircle } from 'lucide-react';
 
 export interface BecaItem {
   id: string;
@@ -332,7 +332,7 @@ export function ScholarshipList({
             key={beca.id}
             role="button"
             tabIndex={0}
-            aria-selected={isSelected}
+            aria-pressed={isSelected}
             onClick={() => onSelectBeca(beca)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {

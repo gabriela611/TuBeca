@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const cobertura = searchParams.get('cobertura');
     const query = searchParams.get('q');
     const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 50);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 200);
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};

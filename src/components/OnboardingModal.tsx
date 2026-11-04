@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Sparkles,
   MapPin,
-  Percent,
   Compass,
   Award,
   HeartHandshake,
@@ -32,7 +31,6 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
   const [selectedNivel, setSelectedNivel] = useState('');
   const [selectedMotivo, setSelectedMotivo] = useState('');
   const [selectedLugar, setSelectedLugar] = useState('');
-  const [selectedCobertura, setSelectedCobertura] = useState('');
 
   const modalRef = useRef<HTMLDivElement>(null);
   const stepContentRef = useRef<HTMLDivElement>(null);
@@ -73,7 +71,7 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
   if (!isOpen) return null;
 
   const handleFinish = (finalCobertura?: string) => {
-    const coberturaValue = finalCobertura ?? selectedCobertura;
+    const coberturaValue = finalCobertura ?? '';
 
     onApplyFilters({
       tipo: selectedNivel,

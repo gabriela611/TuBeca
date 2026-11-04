@@ -10,12 +10,8 @@ import {
   Check,
   Heart,
   Info,
-  DollarSign,
   Users,
-  GraduationCap,
   FileText,
-  AlertTriangle,
-  Award,
 } from 'lucide-react';
 import { type BecaItem, parseCoveragePercentage } from './ScholarshipList';
 
@@ -40,7 +36,7 @@ export function ScholarshipDetail({
         { opacity: 1, y: 0, duration: 0.2, ease: 'power2.out' },
       );
     }
-  }, [beca?.id]);
+  }, [beca]);
 
   if (!beca) {
     return (
