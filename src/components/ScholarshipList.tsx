@@ -41,6 +41,7 @@ export interface BecaItem {
   fechaCierre?: string | Date | null;
   estadoConvocatoria?: string | null;
   enlaceOficial?: string | null;
+  fechaActualizacion?: string | Date | null;
   observaciones?: string | null;
   estadoCalidadDato?: string | null;
 

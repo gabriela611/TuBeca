@@ -18,6 +18,8 @@ import {
   HelpCircle,
   Share2,
   Copy,
+  Flag,
+  X,
 } from 'lucide-react';
 import { type BecaItem, parseCoveragePercentage } from './ScholarshipList';
 import { diasRestantes } from '@/lib/countdown';
@@ -39,6 +41,43 @@ export function ScholarshipDetail({
   const containerRef = useRef<HTMLDivElement>(null);
   const [checkedMap, setCheckedMap] = useState<Record<string, number[]>>({});
   const [copied, setCopied] = useState(false);
+
+  // Error Report state
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportMotivo, setReportMotivo] = useState('enlace_roto');
+  const [reportDesc, setReportDesc] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+
+  const handleSendReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!beca) return;
+    setReportLoading(true);
+    setReportError(null);
+    try {
+      const res = await fetch('/api/reportes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          becaId: beca.id,
+          motivo: reportMotivo,
+          descripcion: reportDesc,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'No se pudo enviar el reporte.');
+      }
+      setReportSuccess(true);
+      setReportDesc('');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error enviando reporte';
+      setReportError(msg);
+    } finally {
+      setReportLoading(false);
+    }
+  };
 
   const becaId = beca?.id || beca?.idBeca || '';
 
@@ -847,7 +886,239 @@ export function ScholarshipDetail({
             Información de postulación directa en la oficina de admisiones de {uniName}
           </div>
         )}
+
+        {/* Verification Date & Report Error Trigger */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingTop: '12px',
+            borderTop: '1px solid var(--border-subtle)',
+            fontSize: '0.75rem',
+            color: 'var(--ink-500)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <CheckCircle2 size={13} style={{ color: '#16a34a' }} />
+            <span>
+              Verificado el{' '}
+              {beca.fechaActualizacion
+                ? new Date(beca.fechaActualizacion).toLocaleDateString('es-CO', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })
+                : 'Recientemente'}
+            </span>
+            {beca.estadoCalidadDato && (
+              <span
+                style={{
+                  backgroundColor: '#f0fdf4',
+                  color: '#15803d',
+                  border: '1px solid #bbf7d0',
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                  fontSize: '0.6875rem',
+                  fontWeight: 600,
+                  textTransform: 'capitalize',
+                }}
+              >
+                {beca.estadoCalidadDato.replace(/_/g, ' ')}
+              </span>
+            )}
+          </div>
+
+          <button
+            onClick={() => setIsReportOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'none',
+              border: 'none',
+              color: 'var(--ink-400)',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              padding: '2px 4px',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#dc2626')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ink-400)')}
+          >
+            <Flag size={12} />
+            <span>Reportar un error</span>
+          </button>
+        </div>
       </div>
+
+      {/* Modal: Reportar error */}
+      {isReportOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 130,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+          onClick={() => setIsReportOpen(false)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '460px',
+              backgroundColor: '#ffffff',
+              borderRadius: 'var(--radius-lg, 12px)',
+              boxShadow: 'var(--shadow-modal)',
+              padding: '24px',
+              animation: 'fadeIn 0.2s ease-out',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {reportSuccess ? (
+              <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                <CheckCircle2 size={44} style={{ color: '#16a34a', margin: '0 auto 12px auto' }} />
+                <h3 style={{ fontSize: '1.0625rem', fontWeight: 800, color: 'var(--ink-900)', marginBottom: '8px' }}>
+                  ¡Reporte enviado!
+                </h3>
+                <p style={{ fontSize: '0.875rem', color: 'var(--ink-600)', marginBottom: '20px' }}>
+                  Gracias por ayudarnos a mantener la información actualizada.
+                </p>
+                <button
+                  onClick={() => {
+                    setIsReportOpen(false);
+                    setReportSuccess(false);
+                  }}
+                  style={{
+                    backgroundColor: 'var(--brand-600)',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '8px 18px',
+                    fontSize: '0.875rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Entendido
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSendReport} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Flag size={18} style={{ color: '#dc2626' }} />
+                    <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--ink-900)', margin: 0 }}>
+                      Reportar un error en la convocatoria
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsReportOpen(false)}
+                    style={{ background: 'none', border: 'none', color: 'var(--ink-400)', cursor: 'pointer' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, marginBottom: '6px' }}>
+                    Motivo del reporte
+                  </label>
+                  <select
+                    value={reportMotivo}
+                    onChange={(e) => setReportMotivo(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1.5px solid var(--border-subtle)',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    <option value="enlace_roto">Enlace oficial roto o no disponible</option>
+                    <option value="fecha_incorrecta">Fecha de cierre o apertura incorrecta</option>
+                    <option value="requisitos_cambiaron">Los requisitos o cobertura cambiaron</option>
+                    <option value="otro">Otro error en la información</option>
+                  </select>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 700 }}>
+                      Descripción (máximo 500 caracteres)
+                    </label>
+                    <span style={{ fontSize: '0.75rem', color: reportDesc.length > 480 ? '#dc2626' : 'var(--ink-400)' }}>
+                      {reportDesc.length} / 500
+                    </span>
+                  </div>
+                  <textarea
+                    rows={4}
+                    maxLength={500}
+                    value={reportDesc}
+                    onChange={(e) => setReportDesc(e.target.value)}
+                    placeholder="Cuéntanos qué dato es incorrecto o qué cambió..."
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1.5px solid var(--border-subtle)',
+                      fontSize: '0.875rem',
+                      resize: 'none',
+                    }}
+                  />
+                </div>
+
+                {reportError && (
+                  <div style={{ fontSize: '0.8125rem', color: '#b91c1c', backgroundColor: '#fef2f2', padding: '8px 12px', borderRadius: '6px' }}>
+                    {reportError}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsReportOpen(false)}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border-subtle)',
+                      background: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.8125rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={reportLoading}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'var(--brand-600)',
+                      color: '#ffffff',
+                      border: 'none',
+                      cursor: reportLoading ? 'not-allowed' : 'pointer',
+                      fontSize: '0.8125rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {reportLoading ? 'Enviando...' : 'Enviar reporte'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
