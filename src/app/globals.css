@@ -1,67 +1,91 @@
 :root {
-  /* Requested Color Palette */
-  --primary-color: #1d4ed8;
-  /* Primario: Royal Blue 700 */
-  --accent-color: #facc15;
-  /* Acento: Golden Yellow 400 */
-  --background-color: #f5f8ff;
-  /* Fondo: Soft Ice Blue */
-  --text-color: #0f172a;
-  /* Texto: Deep Slate 900 */
+  /* Brand Core Palette */
+  --primary-color: #1d4ed8;  /* Royal Blue 700 */
+  --accent-color: #facc15;   /* Golden Yellow 400 */
+  --background-color: #f5f8ff; /* Soft Ice Blue */
+  --text-color: #0f172a;     /* Deep Slate 900 */
 
-  /* Text & Ink Tokens */
-  --ink-900: #0f172a;
-  /* Primario: Texto de alto contraste */
-  --ink-700: #334155;
-  /* Secundario: Slate 700 */
-  --ink-500: #64748b;
-  /* Terciario: Slate 500 */
-  --ink-400: #94a3b8;
-  /* Divisores / Iconos suaves */
-  --ink-300: #cbd5e1;
+  /* Text & Ink Tokens (WCAG AAA / AA verified) */
+  --ink-900: #0f172a;        /* Primario: Deep Slate Navy (> 15:1) */
+  --ink-700: #334155;        /* Secundario: Slate Navy (> 8.5:1) */
+  --ink-600: #475569;        /* Terciario estructurado (> 6.0:1) */
+  --ink-500: #64748b;        /* Metadatos y etiquetas (> 4.5:1) */
+  --ink-400: #94a3b8;        /* Iconografía secundaria y placeholders */
+  --ink-300: #cbd5e1;        /* Separadores sutiles */
 
-  /* Surfaces & Backgrounds */
-  --surface-base: #f5f8ff;
-  /* Fondo oficial solicitado */
+  /* Surfaces & Canvas (Atmospheric Ice Depth) */
+  --surface-base: #f5f8ff;   /* Fondo oficial Soft Ice Blue */
   --surface-base-gradient: linear-gradient(180deg, #f8faff 0%, #edf3fc 100%);
-  --surface-card: #ffffff;
-  /* Tarjetas blancas nítidas */
-  --surface-subtle: #edf3fc;
-  /* Fondos de selector / badges suaves */
-  --surface-hover: #f1f6fd;
+  --surface-card: #ffffff;   /* Tarjetas blancas puras */
+  --surface-subtle: #f0f5ff; /* Superficie secundaria con tinte azul sutil */
+  --surface-hover: #f4f8ff;  /* Hover reactivo */
+  --surface-active: #e8f0fe;
 
-  /* Borders */
+  /* Borders & Focus */
   --border-subtle: #dbe4f4;
   --border-hover: #cbd5e1;
   --border-focus: #1d4ed8;
 
-  /* Brand Primary (#1D4ED8) */
-  --brand-600: #1d4ed8;
-  --brand-700: #1e40af;
-  --brand-800: #1e3a8a;
-  --brand-500: #2563eb;
-  --brand-50: #eff6ff;
+  /* Brand Primary Ramp (#1D4ED8 / Royal Blue) */
+  --brand-900: #1e3a8a;
+  --brand-800: #1e40af;
+  --brand-700: #1d4ed8;
+  --brand-600: #2563eb;
+  --brand-500: #3b82f6;
+  --brand-200: #bfdbfe;
   --brand-100: #dbeafe;
+  --brand-50: #eff6ff;
 
-  /* Accent (#FACC15) */
-  --accent-400: #facc15;
-  --accent-500: #eab308;
+  /* Brand Accent Ramp (#FACC15 / Sol Colombiano & Logros) */
+  --accent-700: #a16207;
   --accent-600: #ca8a04;
-  --accent-50: #fefce8;
+  --accent-500: #eab308;
+  --accent-400: #facc15;
   --accent-100: #fef9c3;
+  --accent-50: #fefce8;
 
-  /* Status Tokens */
+  /* Semantic Status Tokens (Purposeful Hierarchy, > 4.5:1) */
+  /* Success: "Cumples" / Verificación / Completitud */
+  --status-success-bg: #ecfdf5;
+  --status-success-text: #065f46;
+  --status-success-border: #a7f3d0;
+  --status-success-icon: #059669;
+
+  /* Warning: "Faltan datos" / Acción requerida (Vinculado al Acento Amarillo) */
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #92400e;
+  --status-warning-border: #fde68a;
+  --status-warning-icon: #d97706;
+
+  /* Error: "No cumples" / Requisito no alcanzado */
+  --status-error-bg: #fff1f2;
+  --status-error-text: #9f1239;
+  --status-error-border: #fecdd3;
+  --status-error-icon: #e11d48;
+
+  /* Urgency: "Cierra pronto" (<= 7 días) */
+  --status-urgent-bg: #fff1f2;
+  --status-urgent-text: #be123c;
+  --status-urgent-border: #fecdd3;
+  --status-urgent-icon: #e11d48;
+
+  /* Coverage Tier Tones (Tiered Recognition) */
   --coverage-total-bg: #eff6ff;
   --coverage-total-text: #1d4ed8;
   --coverage-total-border: #bfdbfe;
 
-  --coverage-partial-bg: #f8fafc;
-  --coverage-partial-text: #475569;
-  --coverage-partial-border: #e2e8f0;
+  --coverage-high-bg: #f5f3ff;
+  --coverage-high-text: #4338ca;
+  --coverage-high-border: #ddd6fe;
+
+  --coverage-partial-bg: #f0f7ff;
+  --coverage-partial-text: #1e40af;
+  --coverage-partial-border: #dbeafe;
 
   /* Favorite State */
   --favorite-bg: #fefce8;
   --favorite-color: #ca8a04;
+  --favorite-hover: #eab308;
 
   /* Geometry & Depth */
   --radius-sm: 8px;
@@ -77,11 +101,12 @@
   --duration-normal: 250ms;
   --duration-smooth: 320ms;
 
-  /* Shadows with Slate depth */
+  /* Shadows with Chromatic Royal Blue & Slate Depth */
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
   --shadow-card: 0 2px 6px -1px rgba(15, 23, 42, 0.05), 0 1px 4px -1px rgba(15, 23, 42, 0.03);
-  --shadow-card-hover: 0 12px 28px -4px rgba(29, 78, 216, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+  --shadow-card-hover: 0 12px 28px -4px rgba(29, 78, 216, 0.14), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
   --shadow-modal: 0 20px 40px -8px rgba(15, 23, 42, 0.25);
+  --shadow-cta: 0 4px 16px rgba(29, 78, 216, 0.28);
 }
 
 * {
@@ -122,10 +147,15 @@ body {
   background: var(--ink-400);
 }
 
-/* Selection */
+/* Selection & Focus (Branded Browser Surfaces) */
 ::selection {
   background-color: var(--brand-100);
-  color: var(--brand-800);
+  color: var(--brand-900);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-600);
+  outline-offset: 2px;
 }
 
 a {

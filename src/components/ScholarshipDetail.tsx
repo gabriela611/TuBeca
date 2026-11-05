@@ -484,8 +484,8 @@ export function ScholarshipDetail({
             style={{
               padding: '16px',
               borderRadius: 'var(--radius-md)',
-              backgroundColor: esCumple ? '#f0fdf4' : esNoCumple ? '#fef2f2' : 'var(--surface-subtle)',
-              border: `1.5px solid ${esCumple ? '#bbf7d0' : esNoCumple ? '#fecaca' : 'var(--border-subtle)'}`,
+              backgroundColor: esCumple ? 'var(--status-success-bg)' : esNoCumple ? 'var(--status-error-bg)' : 'var(--status-warning-bg)',
+              border: `1.5px solid ${esCumple ? 'var(--status-success-border)' : esNoCumple ? 'var(--status-error-border)' : 'var(--status-warning-border)'}`,
               display: 'flex',
               flexDirection: 'column',
               gap: '10px',
@@ -493,10 +493,10 @@ export function ScholarshipDetail({
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {esCumple && <CheckCircle2 size={18} style={{ color: '#16a34a' }} />}
-                {esNoCumple && <XCircle size={18} style={{ color: '#dc2626' }} />}
-                {!esCumple && !esNoCumple && <HelpCircle size={18} style={{ color: 'var(--ink-500)' }} />}
-                <strong style={{ fontSize: '0.875rem', color: esCumple ? '#15803d' : esNoCumple ? '#b91c1c' : 'var(--ink-800)' }}>
+                {esCumple && <CheckCircle2 size={18} style={{ color: 'var(--status-success-icon)' }} />}
+                {esNoCumple && <XCircle size={18} style={{ color: 'var(--status-error-icon)' }} />}
+                {!esCumple && !esNoCumple && <HelpCircle size={18} style={{ color: 'var(--status-warning-icon)' }} />}
+                <strong style={{ fontSize: '0.875rem', color: esCumple ? 'var(--status-success-text)' : esNoCumple ? 'var(--status-error-text)' : 'var(--status-warning-text)' }}>
                   {esCumple
                     ? 'Cumples con los requisitos de esta convocatoria'
                     : esNoCumple
@@ -510,7 +510,7 @@ export function ScholarshipDetail({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingTop: '4px' }}>
                 {eleg.detalles.map((d, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--ink-700)' }}>
-                    <span style={{ color: d.cumple === true ? '#16a34a' : d.cumple === false ? '#dc2626' : 'var(--ink-400)', fontWeight: 700 }}>
+                    <span style={{ color: d.cumple === true ? 'var(--status-success-icon)' : d.cumple === false ? 'var(--status-error-icon)' : 'var(--status-warning-icon)', fontWeight: 700 }}>
                       {d.cumple === true ? '✓' : d.cumple === false ? '✕' : '•'}
                     </span>
                     <span>{d.mensaje}</span>
@@ -586,18 +586,18 @@ export function ScholarshipDetail({
                   backgroundColor: countdown.esVencida
                     ? 'var(--surface-subtle)'
                     : countdown.esUrgente
-                      ? '#fef2f2'
+                      ? 'var(--status-urgent-bg)'
                       : 'var(--brand-50)',
                   color: countdown.esVencida
                     ? 'var(--ink-500)'
                     : countdown.esUrgente
-                      ? '#dc2626'
+                      ? 'var(--status-urgent-text)'
                       : 'var(--brand-700)',
                   border: `1px solid ${
                     countdown.esVencida
                       ? 'var(--border-subtle)'
                       : countdown.esUrgente
-                        ? '#fecaca'
+                        ? 'var(--status-urgent-border)'
                         : 'var(--brand-200)'
                   }`,
                 }}
@@ -701,9 +701,9 @@ export function ScholarshipDetail({
                 fontWeight: 700,
                 padding: '2px 8px',
                 borderRadius: 'var(--radius-full)',
-                backgroundColor: currentCheckedSet.size === documentsList.length ? '#f0fdf4' : 'var(--brand-50)',
-                color: currentCheckedSet.size === documentsList.length ? '#15803d' : 'var(--brand-700)',
-                border: `1px solid ${currentCheckedSet.size === documentsList.length ? '#bbf7d0' : 'var(--brand-200)'}`,
+                backgroundColor: currentCheckedSet.size === documentsList.length ? 'var(--status-success-bg)' : 'var(--brand-50)',
+                color: currentCheckedSet.size === documentsList.length ? 'var(--status-success-text)' : 'var(--brand-700)',
+                border: `1px solid ${currentCheckedSet.size === documentsList.length ? 'var(--status-success-border)' : 'var(--brand-200)'}`,
               }}
             >
               {currentCheckedSet.size} de {documentsList.length} listos
@@ -857,17 +857,25 @@ export function ScholarshipDetail({
               gap: '8px',
               width: '100%',
               padding: '13px 20px',
-              backgroundColor: 'var(--brand-600)',
+              backgroundColor: 'var(--brand-700)',
               color: '#ffffff',
               borderRadius: 'var(--radius-md)',
               fontSize: '0.875rem',
               fontWeight: 700,
-              boxShadow: 'var(--shadow-sm)',
+              boxShadow: 'var(--shadow-cta)',
               textDecoration: 'none',
-              transition: 'background-color 0.15s ease',
+              transition: 'all 0.18s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-700)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-600)')}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--brand-800)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(29, 78, 216, 0.35)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--brand-700)';
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = 'var(--shadow-cta)';
+            }}
           >
             <span>Postularme en el sitio oficial</span>
             <ExternalLink size={15} />

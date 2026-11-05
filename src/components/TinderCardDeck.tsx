@@ -632,16 +632,16 @@ export function TinderCardDeck({
           }}
         >
           {/* Stamp Badges */}
-          {/* LIKE / GUARDAR (Green/Gold) */}
+          {/* LIKE / GUARDAR (Success Emerald) */}
           <div
             style={{
               position: 'absolute',
               top: '20px',
               left: '20px',
               padding: '6px 14px',
-              border: '3px solid #16a34a',
+              border: '3px solid var(--status-success-icon)',
               borderRadius: '8px',
-              color: '#16a34a',
+              color: 'var(--status-success-icon)',
               fontWeight: 900,
               fontSize: '1rem',
               letterSpacing: '0.08em',
@@ -650,23 +650,27 @@ export function TinderCardDeck({
               opacity: likeOpacity,
               pointerEvents: 'none',
               backgroundColor: 'rgba(255, 255, 255, 0.94)',
-              boxShadow: '0 4px 12px rgba(22, 163, 74, 0.2)',
+              boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
               zIndex: 30,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            GUARDAR ❤️
+            <Heart size={16} fill="currentColor" />
+            <span>GUARDAR</span>
           </div>
 
-          {/* NOPE / DESCARTAR (Red) */}
+          {/* NOPE / DESCARTAR (Rose Coral) */}
           <div
             style={{
               position: 'absolute',
               top: '20px',
               right: '20px',
               padding: '6px 14px',
-              border: '3px solid #dc2626',
+              border: '3px solid var(--status-error-icon)',
               borderRadius: '8px',
-              color: '#dc2626',
+              color: 'var(--status-error-icon)',
               fontWeight: 900,
               fontSize: '1rem',
               letterSpacing: '0.08em',
@@ -675,11 +679,15 @@ export function TinderCardDeck({
               opacity: nopeOpacity,
               pointerEvents: 'none',
               backgroundColor: 'rgba(255, 255, 255, 0.94)',
-              boxShadow: '0 4px 12px rgba(220, 38, 38, 0.2)',
+              boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)',
               zIndex: 30,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            DESCARTAR ✕
+            <X size={16} strokeWidth={2.8} />
+            <span>DESCARTAR</span>
           </div>
 
           {/* Top Row: University & City */}
@@ -834,22 +842,22 @@ export function TinderCardDeck({
                       borderRadius: 'var(--radius-full)',
                       backgroundColor:
                         elegibilidad.estado === 'cumples'
-                          ? '#f0fdf4'
+                          ? 'var(--status-success-bg)'
                           : elegibilidad.estado === 'no_cumples'
-                            ? '#fef2f2'
-                            : 'var(--surface-subtle)',
+                            ? 'var(--status-error-bg)'
+                            : 'var(--status-warning-bg)',
                       color:
                         elegibilidad.estado === 'cumples'
-                          ? '#15803d'
+                          ? 'var(--status-success-text)'
                           : elegibilidad.estado === 'no_cumples'
-                            ? '#b91c1c'
-                            : 'var(--ink-600)',
+                            ? 'var(--status-error-text)'
+                            : 'var(--status-warning-text)',
                       border: `1px solid ${
                         elegibilidad.estado === 'cumples'
-                          ? '#bbf7d0'
+                          ? 'var(--status-success-border)'
                           : elegibilidad.estado === 'no_cumples'
-                            ? '#fecaca'
-                            : 'var(--border-subtle)'
+                            ? 'var(--status-error-border)'
+                            : 'var(--status-warning-border)'
                       }`,
                     }}
                   >
