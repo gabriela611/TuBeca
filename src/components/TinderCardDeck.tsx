@@ -9,6 +9,8 @@ import {
   MapPin,
   Sparkles,
   Layers,
+  AlertCircle,
+  SearchX,
 } from 'lucide-react';
 import { type BecaItem, parseCoveragePercentage } from './ScholarshipList';
 import { triggerSaveConfetti } from '@/lib/confetti';
@@ -25,6 +27,10 @@ interface TinderCardDeckProps {
   onRestartDeck?: () => void;
   showingFavoritesOnly?: boolean;
   onClearFavoritesFilter?: () => void;
+  isLoading?: boolean;
+  loadError?: string | null;
+  onRetry?: () => void;
+  onResetFilters?: () => void;
 }
 
 /**
@@ -104,6 +110,10 @@ export function TinderCardDeck({
   onRestartDeck,
   showingFavoritesOnly,
   onClearFavoritesFilter,
+  isLoading,
+  loadError,
+  onRetry,
+  onResetFilters,
 }: TinderCardDeckProps) {
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -209,15 +219,132 @@ export function TinderCardDeck({
     setDragOffset({ x: 0, y: 0 });
   };
 
-  // If no scholarships available or finished
-  if (!activeBeca) {
+  // Error state
+  if (loadError) {
     return (
       <div
         className="t-card-enter"
         style={{
           width: '100%',
           maxWidth: '440px',
+          minHeight: '380px',
+          backgroundColor: '#ffffff',
+          borderRadius: 'var(--radius-lg)',
+          border: '1.5px dashed #fca5a5',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '32px',
+          textAlign: 'center',
+          boxShadow: 'var(--shadow-sm)',
+          margin: '0 auto',
+        }}
+      >
+        <div
+          style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            backgroundColor: '#fef2f2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#dc2626',
+            marginBottom: '16px',
+          }}
+        >
+          <AlertCircle size={28} />
+        </div>
+
+        <h3 style={{ fontSize: '1.1875rem', fontWeight: 800, color: 'var(--ink-900)', marginBottom: '8px' }}>
+          Error al cargar las becas
+        </h3>
+
+        <p style={{ fontSize: '0.875rem', color: 'var(--ink-500)', lineHeight: 1.5, maxWidth: '280px', marginBottom: '20px' }}>
+          {loadError}
+        </p>
+
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '11px 20px',
+              backgroundColor: 'var(--brand-600)',
+              color: '#ffffff',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.875rem',
+              fontWeight: 700,
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-sm)',
+              transition: 'background-color var(--duration-fast) var(--ease-smooth-out)',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-700)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-600)')}
+          >
+            <RotateCcw size={15} />
+            <span>Reintentar</span>
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '440px',
           height: '460px',
+          backgroundColor: '#ffffff',
+          borderRadius: 'var(--radius-lg)',
+          border: '1.5px solid var(--border-subtle)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '32px',
+          textAlign: 'center',
+          boxShadow: 'var(--shadow-sm)',
+          margin: '0 auto',
+        }}
+      >
+        <div
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            border: '3px solid var(--border-subtle)',
+            borderTopColor: 'var(--brand-600)',
+            animation: 'spin 0.8s linear infinite',
+            marginBottom: '16px',
+          }}
+        />
+        <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--ink-600)' }}>
+          Cargando convocatorias...
+        </p>
+      </div>
+    );
+  }
+
+  // If no scholarships available or finished
+  if (!activeBeca) {
+    const isFilterEmpty = becas.length === 0;
+
+    return (
+      <div
+        className="t-card-enter"
+        style={{
+          width: '100%',
+          maxWidth: '440px',
+          minHeight: '420px',
           backgroundColor: '#ffffff',
           borderRadius: 'var(--radius-lg)',
           border: '1.5px dashed var(--border-subtle)',
@@ -236,29 +363,62 @@ export function TinderCardDeck({
             width: '56px',
             height: '56px',
             borderRadius: '50%',
-            backgroundColor: 'var(--brand-50)',
+            backgroundColor: isFilterEmpty ? 'var(--surface-subtle)' : 'var(--brand-50)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--brand-600)',
+            color: isFilterEmpty ? 'var(--ink-500)' : 'var(--brand-600)',
             marginBottom: '16px',
           }}
         >
-          <Sparkles size={28} />
+          {isFilterEmpty ? <SearchX size={28} /> : <Sparkles size={28} />}
         </div>
 
         <h3 style={{ fontSize: '1.1875rem', fontWeight: 800, color: 'var(--ink-900)', marginBottom: '8px' }}>
-          {showingFavoritesOnly ? 'No tienes más guardadas' : '¡Has revisado todas las becas!'}
+          {showingFavoritesOnly
+            ? 'No tienes becas guardadas'
+            : isFilterEmpty
+              ? 'Sin resultados para tus filtros'
+              : '¡Has revisado todas las becas!'}
         </h3>
 
-        <p style={{ fontSize: '0.875rem', color: 'var(--ink-500)', lineHeight: 1.5, maxWidth: '280px', marginBottom: '20px' }}>
+        <p style={{ fontSize: '0.875rem', color: 'var(--ink-500)', lineHeight: 1.5, maxWidth: '290px', marginBottom: '20px' }}>
           {showingFavoritesOnly
             ? 'Guarda becas deslizando hacia la derecha para verlas aquí reunidas.'
-            : 'Puedes volver a empezar la baraja o ajustar los filtros para descubrir nuevas oportunidades.'}
+            : isFilterEmpty
+              ? 'No encontramos convocatorias que coincidan con tus criterios. Prueba cambiando los filtros o restableciéndolos.'
+              : 'Has explorado todas las convocatorias disponibles en esta selección. Puedes volver a empezar la baraja o ajustar los filtros.'}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', maxWidth: '240px' }}>
-          {onRestartDeck && (
+          {isFilterEmpty && onResetFilters && !showingFavoritesOnly && (
+            <button
+              onClick={onResetFilters}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '11px 18px',
+                backgroundColor: 'var(--brand-600)',
+                color: '#ffffff',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'background-color var(--duration-fast) var(--ease-smooth-out)',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-700)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-600)')}
+            >
+              <RotateCcw size={15} />
+              <span>Restablecer filtros</span>
+            </button>
+          )}
+
+          {!isFilterEmpty && onRestartDeck && (
             <button
               onClick={onRestartDeck}
               style={{

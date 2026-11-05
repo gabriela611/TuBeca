@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { calcularEstado } from '@/lib/estado';
 
 /**
  * GET /api/becas
@@ -7,13 +8,13 @@ import { prisma } from '@/lib/db/prisma';
  * Lista becas con el nuevo esquema de Medellín y área metropolitana.
  * Filtros opcionales:
  * - tipo / nivel: pregrado | posgrado | maestría | doctorado | técnico
- * - estado: abierta | cerrada
+ * - estado: activa | proxima | vencida | abierta | cerrada
  * - municipio / ciudad: nombre de municipio
  * - universidad: nombre de la universidad
  * - cobertura: total | parcial
  * - q: búsqueda textual
  * - page: número de página (default: 1)
- * - limit: resultados por página (default: 50)
+ * - limit: resultados por página (default: 100)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -32,40 +33,53 @@ export async function GET(request: NextRequest) {
     const where: Record<string, unknown> = {};
 
     if (tipo) {
-      where.nivelAcademico = { contains: tipo };
+      where.nivelAcademico = { contains: tipo, mode: 'insensitive' };
     }
 
     if (estado) {
-      where.estadoConvocatoria = { contains: estado };
+      const estadoNorm = estado.toLowerCase();
+      if (estadoNorm === 'activa' || estadoNorm === 'abierta') {
+        where.OR = [
+          { fechaCierre: { gte: new Date() } },
+          { estadoConvocatoria: { contains: 'abiert', mode: 'insensitive' } },
+        ];
+      } else if (estadoNorm === 'vencida' || estadoNorm === 'cerrada') {
+        where.OR = [
+          { fechaCierre: { lt: new Date() } },
+          { estadoConvocatoria: { contains: 'cerrad', mode: 'insensitive' } },
+        ];
+      } else {
+        where.estadoConvocatoria = { contains: estado, mode: 'insensitive' };
+      }
     }
 
     // El filtro "ciudad" filtra por la ciudad de la sede de la universidad
     if (ciudad || universidad) {
       where.universidadRel = {
-        ...(ciudad ? { ciudad: { contains: ciudad } } : {}),
-        ...(universidad ? { nombre: { contains: universidad } } : {}),
+        ...(ciudad ? { ciudad: { contains: ciudad, mode: 'insensitive' } } : {}),
+        ...(universidad ? { nombre: { contains: universidad, mode: 'insensitive' } } : {}),
       };
     }
 
     if (cobertura) {
       if (cobertura.toLowerCase() === 'total') {
         where.OR = [
-          { porcentaje: { contains: '100' } },
-          { tipoFinanciacion: { contains: 'Total' } },
-          { cobertura: { contains: '100' } },
+          { porcentaje: { contains: '100', mode: 'insensitive' } },
+          { tipoFinanciacion: { contains: 'Total', mode: 'insensitive' } },
+          { cobertura: { contains: '100', mode: 'insensitive' } },
         ];
       } else if (cobertura.toLowerCase() === 'parcial') {
-        where.tipoFinanciacion = { contains: 'Parcial' };
+        where.tipoFinanciacion = { contains: 'Parcial', mode: 'insensitive' };
       }
     }
 
     if (query) {
       where.OR = [
-        { nombreBeca: { contains: query } },
-        { descripcion: { contains: query } },
-        { universidad: { contains: query } },
-        { requisitos: { contains: query } },
-        { poblacionObjetivo: { contains: query } },
+        { nombreBeca: { contains: query, mode: 'insensitive' } },
+        { descripcion: { contains: query, mode: 'insensitive' } },
+        { universidad: { contains: query, mode: 'insensitive' } },
+        { requisitos: { contains: query, mode: 'insensitive' } },
+        { poblacionObjetivo: { contains: query, mode: 'insensitive' } },
       ];
     }
 
@@ -110,11 +124,7 @@ export async function GET(request: NextRequest) {
       departamento: b.universidadRel?.departamento || (b.universidadRel?.ciudad === 'Bogotá' ? 'Cundinamarca' : 'Antioquia'),
       urlOriginal: b.enlaceOficial || '',
       fuente: 'Universidad',
-      estado: b.estadoConvocatoria?.toLowerCase().includes('abierta')
-        ? 'activa'
-        : b.estadoConvocatoria?.toLowerCase().includes('cerrada')
-        ? 'vencida'
-        : 'proxima',
+      estado: calcularEstado(b.fechaApertura, b.fechaCierre, null, b.estadoConvocatoria),
     }));
 
     return NextResponse.json({

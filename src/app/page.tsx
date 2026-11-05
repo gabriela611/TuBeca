@@ -9,6 +9,7 @@ import { ScholarshipDetail } from '@/components/ScholarshipDetail';
 import { ColombiaMap } from '@/components/ColombiaMap';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { triggerSaveConfetti } from '@/lib/confetti';
+import { normalizeText } from '@/lib/normalize';
 import { Heart } from 'lucide-react';
 
 interface DeckAction {
@@ -20,6 +21,7 @@ interface DeckAction {
 export default function Home() {
   const [allBecas, setAllBecas] = useState<BecaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeView, setActiveView] = useState<'split' | 'map'>('split');
 
@@ -69,22 +71,61 @@ export default function Home() {
 
   // Fetch initial scholarships from API
   useEffect(() => {
-    async function loadBecas() {
+    let ignore = false;
+    async function fetchInitialBecas() {
       try {
-        setIsLoading(true);
         const res = await fetch('/api/becas?limit=100');
-        const json = await res.json();
-        if (json.data && Array.isArray(json.data)) {
-          setAllBecas(json.data);
+        if (!res.ok) {
+          throw new Error(`Error ${res.status}: No se pudieron cargar las becas`);
         }
-      } catch (err) {
-        console.error('Error fetching scholarships:', err);
+        const json = await res.json();
+        if (!ignore) {
+          if (json.data && Array.isArray(json.data)) {
+            setAllBecas(json.data);
+          } else {
+            throw new Error('Respuesta inválida del servidor');
+          }
+        }
+      } catch (err: unknown) {
+        if (!ignore) {
+          const msg = err instanceof Error ? err.message : 'Error al conectar con el servidor';
+          console.error('Error fetching scholarships:', err);
+          setLoadError(msg);
+        }
       } finally {
-        setIsLoading(false);
+        if (!ignore) {
+          setIsLoading(false);
+        }
       }
     }
 
-    loadBecas();
+    fetchInitialBecas();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    setIsLoading(true);
+    setLoadError(null);
+    fetch('/api/becas?limit=100')
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Error ${res.status}: No se pudieron cargar las becas`);
+        const json = await res.json();
+        if (json.data && Array.isArray(json.data)) {
+          setAllBecas(json.data);
+        } else {
+          throw new Error('Respuesta inválida del servidor');
+        }
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Error al conectar con el servidor';
+        console.error('Error retrying scholarships:', err);
+        setLoadError(msg);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   // Filter scholarships locally based on search and sidebar filters
@@ -92,13 +133,13 @@ export default function Home() {
     return allBecas.filter((beca) => {
       // 1. Text search
       if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchTitle = (beca.nombreBeca || beca.titulo || '').toLowerCase().includes(query);
-        const matchDesc = (beca.descripcion || '').toLowerCase().includes(query);
-        const matchUni = (beca.universidad || beca.universidadRel?.nombre || '').toLowerCase().includes(query);
-        const matchCity = (beca.universidadRel?.ciudad || beca.municipioAplicacion || '').toLowerCase().includes(query);
-        const matchReq = (beca.requisitos || '').toLowerCase().includes(query);
-        const matchPob = (beca.poblacionObjetivo || '').toLowerCase().includes(query);
+        const queryNorm = normalizeText(searchQuery);
+        const matchTitle = normalizeText(beca.nombreBeca || beca.titulo).includes(queryNorm);
+        const matchDesc = normalizeText(beca.descripcion).includes(queryNorm);
+        const matchUni = normalizeText(beca.universidad || beca.universidadRel?.nombre).includes(queryNorm);
+        const matchCity = normalizeText(beca.universidadRel?.ciudad || beca.municipioAplicacion).includes(queryNorm);
+        const matchReq = normalizeText(beca.requisitos).includes(queryNorm);
+        const matchPob = normalizeText(beca.poblacionObjetivo).includes(queryNorm);
         if (!matchTitle && !matchDesc && !matchUni && !matchCity && !matchReq && !matchPob) {
           return false;
         }
@@ -106,8 +147,8 @@ export default function Home() {
 
       // 2. Nivel de estudio
       if (filters.tipo) {
-        const nivel = (beca.nivelAcademico || beca.tipo || '').toLowerCase();
-        if (!nivel.includes(filters.tipo.toLowerCase())) {
+        const nivel = normalizeText(beca.nivelAcademico || beca.tipo);
+        if (!nivel.includes(normalizeText(filters.tipo))) {
           return false;
         }
       }
@@ -130,8 +171,8 @@ export default function Home() {
 
       // 4. Estado
       if (filters.estado) {
-        const estado = (beca.estadoConvocatoria || beca.estado || '').toLowerCase();
-        if (!estado.includes(filters.estado.toLowerCase())) {
+        const estado = normalizeText(beca.estadoConvocatoria || beca.estado);
+        if (!estado.includes(normalizeText(filters.estado))) {
           return false;
         }
       }
@@ -139,16 +180,16 @@ export default function Home() {
       // 5. Ciudad de la universidad (no de cada beca)
       const selectedCity = filters.ciudad || filters.departamento;
       if (selectedCity) {
-        const uniCity = (beca.universidadRel?.ciudad || '').toLowerCase();
-        const uniDept = (beca.universidadRel?.departamento || '').toLowerCase();
-        const target = selectedCity.toLowerCase();
+        const uniCity = normalizeText(beca.universidadRel?.ciudad);
+        const uniDept = normalizeText(beca.universidadRel?.departamento);
+        const target = normalizeText(selectedCity);
         const matches =
           uniCity.includes(target) ||
           uniDept.includes(target) ||
-          (target.includes('cundinamarca') && uniCity.includes('bogot')) ||
-          (target.includes('bogot') && (uniDept.includes('cundinamarca') || uniCity.includes('bogot'))) ||
-          (target.includes('antioquia') && uniCity.includes('medell')) ||
-          (target.includes('medell') && (uniDept.includes('antioquia') || uniCity.includes('medell')));
+          (target.includes('cundinamarca') && uniCity.includes('bogota')) ||
+          (target.includes('bogota') && (uniDept.includes('cundinamarca') || uniCity.includes('bogota'))) ||
+          (target.includes('antioquia') && uniCity.includes('medellin')) ||
+          (target.includes('medellin') && (uniDept.includes('antioquia') || uniCity.includes('medellin')));
         if (!matches) {
           return false;
         }
@@ -490,6 +531,10 @@ export default function Home() {
                   }}
                   showingFavoritesOnly={false}
                   onClearFavoritesFilter={() => setShowingFavorites(false)}
+                  isLoading={isLoading}
+                  loadError={loadError}
+                  onRetry={handleRetry}
+                  onResetFilters={handleResetFilters}
                 />
               </section>
             )}
