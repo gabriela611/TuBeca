@@ -84,46 +84,11 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(28, 25, 23, 0.45)',
-        backdropFilter: 'blur(6px)',
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-      }}
-    >
-      <div
-        ref={modalRef}
-        style={{
-          width: '100%',
-          maxWidth: '560px',
-          backgroundColor: '#ffffff',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-modal)',
-          border: '1px solid var(--border-subtle)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-        }}
-      >
+    <div className="tubeca-onboarding-overlay">
+      <div ref={modalRef} className="tubeca-onboarding-modal">
         {/* Top Bar with Progress and Skip 'X' */}
-        <div
-          style={{
-            padding: '18px 24px 14px',
-            borderBottom: '1px solid var(--border-subtle)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#ffffff',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="tubeca-onboarding-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
             <span
               style={{
                 fontSize: '0.75rem',
@@ -133,11 +98,22 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                 padding: '3px 8px',
                 borderRadius: '9999px',
                 border: '1px solid var(--brand-100)',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
               Paso {step} de {totalSteps}
             </span>
-            <span style={{ fontSize: '0.8125rem', color: 'var(--ink-500)', fontWeight: 500 }}>
+            <span
+              style={{
+                fontSize: '0.8125rem',
+                color: 'var(--ink-500)',
+                fontWeight: 500,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               Encuentra tus becas ideales
             </span>
           </div>
@@ -154,6 +130,7 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'background-color 0.15s ease',
+              flexShrink: 0,
             }}
             title="Saltar preguntas y ver todas las becas"
           >
@@ -174,28 +151,20 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
         </div>
 
         {/* Step Body */}
-        <div
-          ref={stepContentRef}
-          style={{
-            padding: '28px 28px 24px',
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: '360px',
-          }}
-        >
+        <div ref={stepContentRef} className="tubeca-onboarding-body">
           {/* STEP 1: Nivel de Estudio */}
           {step === 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-900)', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--ink-900)', letterSpacing: '-0.02em', lineHeight: 1.25 }}>
                   ¿Qué nivel de estudio buscas?
                 </h2>
-                <p style={{ fontSize: '0.875rem', color: 'var(--ink-500)', marginTop: '4px' }}>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--ink-500)', marginTop: '4px', lineHeight: 1.4 }}>
                   Selecciona el tipo de formación para filtrar convocatorias exactas.
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="tubeca-onboarding-grid">
                 {[
                   { id: 'pregrado', label: 'Pregrado', sub: 'Carrera universitaria profesional', icon: GraduationCap },
                   { id: 'posgrado', label: 'Posgrado / Maestría', sub: 'Especialización o Master', icon: Compass },
@@ -211,17 +180,10 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                         setSelectedNivel(item.id);
                         setStep(2);
                       }}
+                      className="tubeca-onboarding-btn"
                       style={{
-                        padding: '16px',
                         backgroundColor: isSelected ? 'var(--brand-50)' : 'var(--surface-card)',
                         border: `1.5px solid ${isSelected ? 'var(--brand-600)' : 'var(--border-subtle)'}`,
-                        borderRadius: 'var(--radius-md)',
-                        textAlign: 'left',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px',
-                        boxShadow: 'var(--shadow-sm)',
-                        transition: 'all 0.15s ease',
                       }}
                       onMouseEnter={(e) => {
                         if (!isSelected) {
@@ -246,15 +208,16 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          flexShrink: 0,
                         }}
                       >
                         <Icon size={20} />
                       </div>
-                      <div>
-                        <strong style={{ fontSize: '0.9375rem', color: 'var(--ink-900)', display: 'block' }}>
+                      <div className="tubeca-onboarding-text-wrap">
+                        <strong style={{ fontSize: '0.9rem', color: 'var(--ink-900)', display: 'block', lineHeight: 1.3 }}>
                           {item.label}
                         </strong>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--ink-500)', lineHeight: 1.3 }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--ink-500)', lineHeight: 1.3, display: 'block', marginTop: '2px' }}>
                           {item.sub}
                         </span>
                       </div>
@@ -267,17 +230,17 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
 
           {/* STEP 2: Enfoque / Qué te mueve */}
           {step === 2 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-900)', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--ink-900)', letterSpacing: '-0.02em', lineHeight: 1.25 }}>
                   ¿Qué te mueve o cuál es tu perfil?
                 </h2>
-                <p style={{ fontSize: '0.875rem', color: 'var(--ink-500)', marginTop: '4px' }}>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--ink-500)', marginTop: '4px', lineHeight: 1.4 }}>
                   Muchas becas se otorgan por condiciones específicas o talentos destacados.
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="tubeca-onboarding-grid">
                 {[
                   { id: 'Mérito Académico', label: 'Mérito Académico', sub: 'Puntajes ICFES o notas altas', icon: Award },
                   { id: 'Necesidad Económica', label: 'Necesidad Económica', sub: 'Estratos 1, 2, 3 o SISBEN', icon: HeartHandshake },
@@ -295,17 +258,10 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                         setSelectedMotivo(item.id);
                         setStep(3);
                       }}
+                      className="tubeca-onboarding-btn"
                       style={{
-                        padding: '14px',
                         backgroundColor: isSelected ? 'var(--brand-50)' : 'var(--surface-card)',
                         border: `1.5px solid ${isSelected ? 'var(--brand-600)' : 'var(--border-subtle)'}`,
-                        borderRadius: 'var(--radius-md)',
-                        textAlign: 'left',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        boxShadow: 'var(--shadow-sm)',
-                        transition: 'all 0.15s ease',
                       }}
                       onMouseEnter={(e) => {
                         if (!isSelected) {
@@ -335,11 +291,11 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                       >
                         <Icon size={18} />
                       </div>
-                      <div>
-                        <strong style={{ fontSize: '0.875rem', color: 'var(--ink-900)', display: 'block' }}>
+                      <div className="tubeca-onboarding-text-wrap">
+                        <strong style={{ fontSize: '0.875rem', color: 'var(--ink-900)', display: 'block', lineHeight: 1.3 }}>
                           {item.label}
                         </strong>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--ink-500)' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--ink-500)', lineHeight: 1.3, display: 'block', marginTop: '2px' }}>
                           {item.sub}
                         </span>
                       </div>
@@ -352,22 +308,22 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
 
           {/* STEP 3: Ciudad / Dónde quieres estudiar */}
           {step === 3 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-900)', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--ink-900)', letterSpacing: '-0.02em', lineHeight: 1.25 }}>
                   ¿Dónde quieres estudiar?
                 </h2>
-                <p style={{ fontSize: '0.875rem', color: 'var(--ink-500)', marginTop: '4px' }}>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--ink-500)', marginTop: '4px', lineHeight: 1.4 }}>
                   Elige la ciudad donde buscas sede o si prefieres becas de alcance nacional.
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="tubeca-onboarding-grid">
                 {[
                   { id: '', label: 'Toda Colombia', sub: 'Todas las ciudades universitarias' },
                   { id: 'Medellín', label: 'Medellín', sub: 'EAFIT, UPB, U. de Medellín, CES' },
-                  { id: 'Bogotá', label: 'Bogotá D.C.', sub: 'Uniandes, UNAL, Javeriana, Rosario' },
-                  { id: 'Cali', label: 'Cali', sub: 'Univalle, Javeriana Cali, Icesi' },
+                  { id: 'Bogotá', label: 'Bogotá D.C.', sub: 'Uniandes, Javeriana, Rosario, Externado' },
+                  { id: 'Cali', label: 'Cali', sub: 'Universidad Icesi, Univalle, Javeriana Cali' },
                   { id: 'Barranquilla', label: 'Barranquilla', sub: 'Uninorte, U. del Atlántico' },
                   { id: 'Bucaramanga', label: 'Bucaramanga', sub: 'UIS, UNAB, UDES' },
                 ].map((item) => {
@@ -379,17 +335,10 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                         setSelectedLugar(item.id);
                         setStep(4);
                       }}
+                      className="tubeca-onboarding-btn"
                       style={{
-                        padding: '14px',
                         backgroundColor: isSelected ? 'var(--brand-50)' : 'var(--surface-card)',
                         border: `1.5px solid ${isSelected ? 'var(--brand-600)' : 'var(--border-subtle)'}`,
-                        borderRadius: 'var(--radius-md)',
-                        textAlign: 'left',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        boxShadow: 'var(--shadow-sm)',
-                        transition: 'all 0.15s ease',
                       }}
                       onMouseEnter={(e) => {
                         if (!isSelected) {
@@ -404,12 +353,12 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                         }
                       }}
                     >
-                      <MapPin size={18} style={{ color: 'var(--brand-600)', flexShrink: 0 }} />
-                      <div>
-                        <strong style={{ fontSize: '0.875rem', color: 'var(--ink-900)', display: 'block' }}>
+                      <MapPin size={18} style={{ color: 'var(--brand-600)', flexShrink: 0, marginTop: '2px' }} />
+                      <div className="tubeca-onboarding-text-wrap">
+                        <strong style={{ fontSize: '0.875rem', color: 'var(--ink-900)', display: 'block', lineHeight: 1.3 }}>
                           {item.label}
                         </strong>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--ink-500)' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--ink-500)', lineHeight: 1.3, display: 'block', marginTop: '2px' }}>
                           {item.sub}
                         </span>
                       </div>
@@ -422,17 +371,17 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
 
           {/* STEP 4: Cobertura Requerida */}
           {step === 4 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-900)', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--ink-900)', letterSpacing: '-0.02em', lineHeight: 1.25 }}>
                   ¿Qué cobertura necesitas?
                 </h2>
-                <p style={{ fontSize: '0.875rem', color: 'var(--ink-500)', marginTop: '4px' }}>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--ink-500)', marginTop: '4px', lineHeight: 1.4 }}>
                   ¿Buscas beca completa del 100% o cualquier porcentaje de apoyo económico?
                 </p>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {[
                   {
                     id: 'total',
@@ -458,7 +407,7 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                       key={item.id}
                       onClick={() => handleFinish(item.id)}
                       style={{
-                        padding: '18px 20px',
+                        padding: '14px 16px',
                         backgroundColor: 'var(--surface-card)',
                         border: '1.5px solid var(--border-subtle)',
                         borderRadius: 'var(--radius-md)',
@@ -466,14 +415,16 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        gap: '16px',
+                        gap: '12px',
                         boxShadow: 'var(--shadow-sm)',
                         transition: 'all 0.15s ease',
+                        width: '100%',
+                        boxSizing: 'border-box',
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.borderColor = 'var(--brand-600)';
                         e.currentTarget.style.backgroundColor = 'var(--brand-50)';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.borderColor = 'var(--border-subtle)';
@@ -481,9 +432,9 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                         e.currentTarget.style.transform = 'none';
                       }}
                     >
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <strong style={{ fontSize: '0.9375rem', color: 'var(--ink-900)' }}>
+                      <div className="tubeca-onboarding-text-wrap" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                          <strong style={{ fontSize: '0.875rem', color: 'var(--ink-900)', lineHeight: 1.3 }}>
                             {item.label}
                           </strong>
                           <span
@@ -492,22 +443,23 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                               fontWeight: 600,
                               color: 'var(--brand-700)',
                               backgroundColor: 'var(--brand-100)',
-                              padding: '2px 6px',
+                              padding: '1px 6px',
                               borderRadius: '4px',
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             {item.pill}
                           </span>
                         </div>
-                        <span style={{ fontSize: '0.8125rem', color: 'var(--ink-500)', lineHeight: 1.4 }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--ink-500)', lineHeight: 1.35, display: 'block' }}>
                           {item.sub}
                         </span>
                       </div>
 
                       <div
                         style={{
-                          width: '36px',
-                          height: '36px',
+                          width: '32px',
+                          height: '32px',
                           borderRadius: '50%',
                           backgroundColor: 'var(--brand-600)',
                           color: '#ffffff',
@@ -517,7 +469,7 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                           flexShrink: 0,
                         }}
                       >
-                        <ChevronRight size={18} />
+                        <ChevronRight size={16} />
                       </div>
                     </button>
                   );
@@ -528,16 +480,7 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
         </div>
 
         {/* Modal Footer */}
-        <div
-          style={{
-            padding: '14px 28px',
-            backgroundColor: 'var(--surface-subtle)',
-            borderTop: '1px solid var(--border-subtle)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
+        <div className="tubeca-onboarding-footer">
           {step > 1 ? (
             <button
               onClick={() => setStep(step - 1)}
@@ -547,7 +490,13 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
                 gap: '4px',
                 fontSize: '0.8125rem',
                 fontWeight: 600,
-                color: 'var(--ink-500)',
+                color: 'var(--ink-700)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 'var(--radius-sm)',
+                flexShrink: 0,
               }}
             >
               <ChevronLeft size={16} />
@@ -563,11 +512,15 @@ export function OnboardingModal({ isOpen, onClose, onApplyFilters }: OnboardingM
               fontSize: '0.8125rem',
               fontWeight: 600,
               color: 'var(--brand-700)',
-              padding: '6px 12px',
+              padding: '6px 10px',
               borderRadius: 'var(--radius-sm)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              textAlign: 'right',
             }}
           >
-            Saltar preguntas y explorar todas las becas ➔
+            <span style={{ display: 'inline' }}>Saltar test ➔</span>
           </button>
         </div>
       </div>

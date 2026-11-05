@@ -306,3 +306,123 @@ textarea {
     animation: none !important;
   }
 }
+
+/* ==========================================================================
+   Onboarding Modal (Test Vocacional) Responsive Styles
+   ========================================================================== */
+.tubeca-onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.tubeca-onboarding-modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  background-color: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.tubeca-onboarding-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  gap: 12px;
+}
+
+.tubeca-onboarding-body {
+  padding: 24px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(92vh - 125px);
+  box-sizing: border-box;
+}
+
+.tubeca-onboarding-footer {
+  padding: 12px 20px;
+  background-color: var(--surface-subtle);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.tubeca-onboarding-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tubeca-onboarding-btn {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.tubeca-onboarding-text-wrap {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@media (max-width: 600px) {
+  .tubeca-onboarding-overlay {
+    padding: 10px;
+  }
+
+  .tubeca-onboarding-header {
+    padding: 14px 16px;
+  }
+
+  .tubeca-onboarding-body {
+    padding: 18px 14px 16px;
+  }
+
+  .tubeca-onboarding-footer {
+    padding: 10px 14px;
+  }
+
+  .tubeca-onboarding-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .tubeca-onboarding-btn {
+    padding: 12px 14px;
+  }
+}
