@@ -806,7 +806,7 @@ export function TinderCardDeck({
                     borderRadius: '4px',
                   }}
                 >
-                  Promedio $\ge$ {activeBeca.promedioMinimo}
+                  Promedio ≥ {activeBeca.promedioMinimo}
                 </span>
               )}
 

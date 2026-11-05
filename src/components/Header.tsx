@@ -18,6 +18,8 @@ interface HeaderProps {
   totalBecas: number;
   user?: { id: string; email: string } | null;
   onOpenAuth?: () => void;
+  onOpenIntroTour?: () => void;
+  onOpenTour?: () => void;
 }
 
 export function Header({
@@ -34,7 +36,10 @@ export function Header({
   totalBecas,
   user,
   onOpenAuth,
+  onOpenIntroTour,
+  onOpenTour,
 }: HeaderProps) {
+  const handleOpenTour = onOpenTour || onOpenIntroTour;
   return (
     <header
       className="tubeca-header"
@@ -222,6 +227,42 @@ export function Header({
 
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+        {/* Tour / ¿Cómo usar? Button (Desktop) */}
+        {handleOpenTour && (
+          <div className="tubeca-header-tour-btn">
+            <button
+              onClick={handleOpenTour}
+              aria-label="Abrir tour interactivo con flechas y guía paso a paso de TuBeca"
+              title="¿Cómo funciona TuBeca? Recorrido interactivo"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 12px',
+                fontSize: '0.8125rem',
+                fontWeight: 700,
+                borderRadius: 'var(--radius-md)',
+                color: '#854d0e',
+                backgroundColor: '#fefce8',
+                border: '1px solid #fef08a',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#fef9c3';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#fefce8';
+                e.currentTarget.style.transform = 'none';
+              }}
+            >
+              <Compass size={15} style={{ color: '#ca8a04' }} />
+              <span>¿Cómo usar?</span>
+            </button>
+          </div>
+        )}
+
         {/* Onboarding / Quick Quiz Button (Desktop only) */}
         <div className="tubeca-header-quiz-btn">
           <button
@@ -252,6 +293,7 @@ export function Header({
         {/* Favorites Toggle Button */}
         <button
           onClick={onToggleShowingFavorites}
+          className="tubeca-fav-btn"
           aria-label={showingFavorites ? 'Ver todas las becas' : `Ver becas favoritas (${favoritesCount})`}
           style={{
             display: 'flex',
@@ -381,7 +423,7 @@ export function Header({
             if (showingFavorites) onToggleShowingFavorites();
             onViewChange('split');
           }}
-          className={`tubeca-mobile-nav-item ${activeView === 'split' && !showingFavorites ? 'is-active' : ''}`}
+          className={`tubeca-mobile-nav-item tubeca-nav-explore ${activeView === 'split' && !showingFavorites ? 'is-active' : ''}`}
           aria-label="Explorar becas en formato baraja"
         >
           <Columns size={19} />
@@ -395,7 +437,7 @@ export function Header({
             if (showingFavorites) onToggleShowingFavorites();
             onViewChange('map');
           }}
-          className={`tubeca-mobile-nav-item ${activeView === 'map' ? 'is-active' : ''}`}
+          className={`tubeca-mobile-nav-item tubeca-nav-map ${activeView === 'map' ? 'is-active' : ''}`}
           aria-label="Ver mapa universitario de Colombia"
         >
           <MapPin size={19} />
@@ -406,7 +448,7 @@ export function Header({
         <button
           type="button"
           onClick={onOpenMobileFilters}
-          className="tubeca-mobile-nav-item"
+          className="tubeca-mobile-nav-item tubeca-nav-filters"
           aria-label="Abrir filtros de búsqueda"
         >
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -422,7 +464,7 @@ export function Header({
         <button
           type="button"
           onClick={onOpenOnboarding}
-          className="tubeca-mobile-nav-item"
+          className="tubeca-mobile-nav-item tubeca-nav-test"
           aria-label="Abrir test vocacional de preguntas"
         >
           <Compass size={19} />
@@ -433,7 +475,7 @@ export function Header({
         <button
           type="button"
           onClick={onToggleShowingFavorites}
-          className={`tubeca-mobile-nav-item ${showingFavorites ? 'is-active' : ''}`}
+          className={`tubeca-mobile-nav-item tubeca-nav-saved ${showingFavorites ? 'is-active' : ''}`}
           aria-label={`Ver becas guardadas (${favoritesCount})`}
         >
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
