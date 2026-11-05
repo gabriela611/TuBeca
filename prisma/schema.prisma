@@ -62,6 +62,8 @@ model Beca {
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
   categorias            BecaCategoria[]
+  favoritos             Favorito[]
+  reportes              Reporte[]
 
   @@map("becas")
 }
@@ -84,4 +86,57 @@ model BecaCategoria {
 
   @@id([becaId, categoriaId])
   @@map("beca_categorias")
+}
+
+model Usuario {
+  id                   String     @id
+  email                String     @unique
+  puntajeSaber11       Int?       @map("puntaje_saber11")
+  promedio             Float?
+  estrato              Int?
+  edad                 Int?
+  recibirRecordatorios Boolean    @default(true) @map("recibir_recordatorios")
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
+
+  favoritos            Favorito[]
+
+  @@map("usuarios")
+}
+
+model Favorito {
+  id                   String                 @id @default(cuid())
+  usuarioId            String                 @map("usuario_id")
+  usuario              Usuario                @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  becaId               String                 @map("beca_id")
+  beca                 Beca                   @relation(fields: [becaId], references: [id], onDelete: Cascade)
+  createdAt            DateTime               @default(now()) @map("created_at")
+
+  recordatoriosEnviados RecordatorioEnviado[]
+
+  @@unique([usuarioId, becaId])
+  @@map("favoritos")
+}
+
+model RecordatorioEnviado {
+  id          String   @id @default(cuid())
+  favoritoId  String   @map("favorito_id")
+  favorito    Favorito @relation(fields: [favoritoId], references: [id], onDelete: Cascade)
+  tipo        String
+  enviadoEn   DateTime @default(now()) @map("enviado_en")
+
+  @@unique([favoritoId, tipo])
+  @@map("recordatorios_enviados")
+}
+
+model Reporte {
+  id          String   @id @default(cuid())
+  becaId      String   @map("beca_id")
+  beca        Beca     @relation(fields: [becaId], references: [id], onDelete: Cascade)
+  motivo      String
+  descripcion String
+  ipHash      String   @map("ip_hash")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("reportes")
 }

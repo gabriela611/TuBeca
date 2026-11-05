@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, MapPin, Columns, GraduationCap, X, Heart, Compass, Filter } from 'lucide-react';
+import { Search, MapPin, Columns, GraduationCap, X, Heart, Compass, Filter, User } from 'lucide-react';
 import { SiluetaColombia } from '@mteherandev/colombia-icons-react';
 
 interface HeaderProps {
@@ -16,6 +16,8 @@ interface HeaderProps {
   onOpenMobileFilters?: () => void;
   activeFiltersCount?: number;
   totalBecas: number;
+  user?: { id: string; email: string } | null;
+  onOpenAuth?: () => void;
 }
 
 export function Header({
@@ -30,6 +32,8 @@ export function Header({
   onOpenMobileFilters,
   activeFiltersCount = 0,
   totalBecas,
+  user,
+  onOpenAuth,
 }: HeaderProps) {
   return (
     <header
@@ -281,6 +285,33 @@ export function Header({
             </span>
           )}
         </button>
+
+        {/* Account / Auth Button */}
+        {onOpenAuth && (
+          <button
+            onClick={onOpenAuth}
+            aria-label={user ? `Cuenta: ${user.email}` : 'Iniciar sesión'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 12px',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              borderRadius: 'var(--radius-md)',
+              color: user ? 'var(--brand-700)' : 'var(--ink-700)',
+              backgroundColor: user ? 'var(--brand-50)' : 'var(--surface-subtle)',
+              border: `1px solid ${user ? 'var(--brand-200)' : 'var(--border-subtle)'}`,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <User size={15} style={{ color: user ? 'var(--brand-600)' : 'inherit' }} />
+            <span className="tubeca-auth-label">
+              {user ? user.email.split('@')[0] : 'Cuenta'}
+            </span>
+          </button>
+        )}
 
         {/* Optional View Switcher (Desktop only) */}
         <div

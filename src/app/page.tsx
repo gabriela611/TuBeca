@@ -9,6 +9,8 @@ import { ScholarshipDetail } from '@/components/ScholarshipDetail';
 import { ColombiaMap } from '@/components/ColombiaMap';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { ScholarshipComparator } from '@/components/ScholarshipComparator';
+import { AuthModal } from '@/components/AuthModal';
+import { supabase } from '@/lib/supabase/client';
 import { triggerSaveConfetti } from '@/lib/confetti';
 import { normalizeText } from '@/lib/normalize';
 import { sortBecas } from '@/lib/sort';
@@ -52,6 +54,10 @@ export default function Home() {
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [compareAlert, setCompareAlert] = useState<string | null>(null);
 
+  // User auth state
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
   const [universidadesList, setUniversidadesList] = useState<Array<{ id: string; nombre: string }>>([]);
 
   const [filters, setFilters] = useState<FilterState>({
@@ -90,13 +96,102 @@ export default function Home() {
     });
   }, []);
 
-  const handlePerfilChange = useCallback((nuevoPerfil: PerfilUsuario) => {
-    setPerfil(nuevoPerfil);
-    try {
-      localStorage.setItem('tubeca_perfil', JSON.stringify(nuevoPerfil));
-    } catch (e) {
-      console.warn('Could not save tubeca_perfil to localStorage:', e);
+  const handlePerfilChange = useCallback(
+    (nuevoPerfil: PerfilUsuario) => {
+      setPerfil(nuevoPerfil);
+      try {
+        localStorage.setItem('tubeca_perfil', JSON.stringify(nuevoPerfil));
+      } catch (e) {
+        console.warn('Could not save tubeca_perfil to localStorage:', e);
+      }
+      if (user?.id) {
+        fetch('/api/usuario/perfil', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuarioId: user.id, ...nuevoPerfil }),
+        }).catch((err) => console.warn('Error guardando perfil en db:', err));
+      }
+    },
+    [user],
+  );
+
+  const syncUserWithServer = useCallback(
+    async (usuarioId: string, email: string) => {
+      try {
+        const localFavs = Array.from(favorites);
+        const res = await fetch('/api/usuario/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            usuarioId,
+            email,
+            localFavoritos: localFavs,
+            perfil,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.favoritos)) {
+            const combined = new Set([...localFavs, ...data.favoritos]);
+            setFavorites(combined);
+            try {
+              localStorage.setItem('tubeca_favoritos', JSON.stringify(Array.from(combined)));
+            } catch {
+              // ignore
+            }
+          }
+          if (data.perfil) {
+            setPerfil((prev) => {
+              const merged = { ...prev, ...data.perfil };
+              try {
+                localStorage.setItem('tubeca_perfil', JSON.stringify(merged));
+              } catch {
+                // ignore
+              }
+              return merged;
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('Error sincronizando con el servidor:', e);
+      }
+    },
+    [favorites, perfil],
+  );
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const u = { id: session.user.id, email: session.user.email || '' };
+        setUser(u);
+        syncUserWithServer(u.id, u.email);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const u = { id: session.user.id, email: session.user.email || '' };
+        setUser(u);
+        syncUserWithServer(u.id, u.email);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [syncUserWithServer]);
+
+  const handleSignOut = useCallback(async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
     }
+    setUser(null);
   }, []);
 
   const handleToggleCompare = useCallback((beca: BecaItem) => {
@@ -357,10 +452,22 @@ export default function Home() {
         triggerSaveConfetti(e);
       }
 
+      if (user?.id) {
+        fetch('/api/usuario/favoritos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            usuarioId: user.id,
+            becaId: beca.id,
+            action: 'add',
+          }),
+        }).catch((err) => console.warn('Error guardando favorito en db:', err));
+      }
+
       setHistory((prev) => [...prev, { id: beca.id, action: 'saved', index: cardIndex }]);
       setCardIndex((prev) => prev + 1);
     },
-    [cardIndex],
+    [cardIndex, user],
   );
 
   // Discard scholarship and advance in Tinder deck
@@ -390,17 +497,30 @@ export default function Home() {
         }
         return updated;
       });
+
+      if (user?.id) {
+        fetch('/api/usuario/favoritos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            usuarioId: user.id,
+            becaId: lastAction.id,
+            action: 'remove',
+          }),
+        }).catch((err) => console.warn('Error removiendo favorito en db:', err));
+      }
     }
 
     setCardIndex(lastAction.index);
-  }, [history]);
+  }, [history, user]);
 
   // Toggle favorite from details panel or saved list
   const handleToggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setFavorites((prev) => {
       const updated = new Set(prev);
-      if (updated.has(id)) {
+      const isFav = updated.has(id);
+      if (isFav) {
         updated.delete(id);
       } else {
         updated.add(id);
@@ -411,6 +531,19 @@ export default function Home() {
       } catch (err) {
         console.warn('Could not save to localStorage:', err);
       }
+
+      if (user?.id) {
+        fetch('/api/usuario/favoritos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            usuarioId: user.id,
+            becaId: id,
+            action: isFav ? 'remove' : 'add',
+          }),
+        }).catch((err) => console.warn('Error guardando favorito en db:', err));
+      }
+
       return updated;
     });
   };
@@ -514,6 +647,8 @@ export default function Home() {
         onOpenMobileFilters={() => setIsMobileFilterOpen(true)}
         activeFiltersCount={activeFiltersCount}
         totalBecas={allBecas.length}
+        user={user}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
       />
 
       {/* Main Workspace (3 columns on desktop, vertical flow on mobile) */}
@@ -853,6 +988,14 @@ export default function Home() {
         becas={compareList}
         onRemoveBeca={handleRemoveFromCompare}
         onClear={handleClearCompare}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        user={user}
+        onSignOut={handleSignOut}
       />
     </div>
   );
