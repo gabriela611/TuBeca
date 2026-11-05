@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Building2, Heart, AlertCircle, Clock, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
+import { Building2, Heart, AlertCircle, Clock, CheckCircle2, XCircle, HelpCircle, Scale } from 'lucide-react';
 import { parseCoveragePercentage } from '@/lib/coverage';
 import { diasRestantes } from '@/lib/countdown';
 import { evaluarElegibilidad, type PerfilUsuario } from '@/lib/eligibility';
@@ -32,6 +32,7 @@ export interface BecaItem {
   edadMinima?: number | null;
   edadMaxima?: number | null;
   promedioMinimo?: number | null;
+  puntajeSaber11Minimo?: number | null;
   estratoSocioeconomico?: string | null;
   poblacionObjetivo?: string | null;
   requisitos?: string | null;
@@ -69,6 +70,8 @@ interface ScholarshipListProps {
   showingFavoritesOnly?: boolean;
   onClearFavoritesFilter?: () => void;
   perfil?: PerfilUsuario;
+  onToggleCompare?: (beca: BecaItem) => void;
+  compareIds?: Set<string>;
 }
 
 
@@ -159,6 +162,8 @@ export function ScholarshipList({
   showingFavoritesOnly,
   onClearFavoritesFilter,
   perfil,
+  onToggleCompare,
+  compareIds,
 }: ScholarshipListProps) {
   if (isLoading) {
     return (
@@ -373,28 +378,56 @@ export function ScholarshipList({
                 <span>{uniName}</span>
               </div>
 
-              {/* Save / Favorite Heart Button */}
-              <button
-                onClick={(e) => onToggleFavorite(beca.id, e)}
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: isFav ? 'var(--favorite-color)' : 'var(--ink-400)',
-                  backgroundColor: isFav ? 'var(--favorite-bg)' : 'transparent',
-                  transition: 'transform 0.15s ease, background-color 0.15s ease',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.15)')}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                title={isFav ? 'Quitar de favoritas' : 'Guardar en favoritas'}
-                aria-label={isFav ? `Quitar ${scholarshipTitle} de favoritas` : `Guardar ${scholarshipTitle} en favoritas`}
-              >
-                <Heart size={16} fill={isFav ? 'currentColor' : 'none'} strokeWidth={isFav ? 0 : 2} />
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {onToggleCompare && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleCompare(beca);
+                    }}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: 'var(--radius-sm, 6px)',
+                      fontSize: '0.6875rem',
+                      fontWeight: 700,
+                      border: `1px solid ${compareIds?.has(beca.id) ? 'var(--brand-600)' : 'var(--border-subtle)'}`,
+                      backgroundColor: compareIds?.has(beca.id) ? 'var(--brand-50)' : '#ffffff',
+                      color: compareIds?.has(beca.id) ? 'var(--brand-700)' : 'var(--ink-600)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                    title={compareIds?.has(beca.id) ? 'Quitar de comparación' : 'Comparar (máx 3)'}
+                  >
+                    <Scale size={12} />
+                    <span>{compareIds?.has(beca.id) ? 'Comparando' : 'Comparar'}</span>
+                  </button>
+                )}
+
+                {/* Save / Favorite Heart Button */}
+                <button
+                  onClick={(e) => onToggleFavorite(beca.id, e)}
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isFav ? 'var(--favorite-color)' : 'var(--ink-400)',
+                    backgroundColor: isFav ? 'var(--favorite-bg)' : 'transparent',
+                    transition: 'transform 0.15s ease, background-color 0.15s ease',
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.15)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                  title={isFav ? 'Quitar de favoritas' : 'Guardar en favoritas'}
+                  aria-label={isFav ? `Quitar ${scholarshipTitle} de favoritas` : `Guardar ${scholarshipTitle} en favoritas`}
+                >
+                  <Heart size={16} fill={isFav ? 'currentColor' : 'none'} strokeWidth={isFav ? 0 : 2} />
+                </button>
+              </div>
             </div>
 
             {/* Title Only */}

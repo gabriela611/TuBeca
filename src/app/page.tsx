@@ -8,11 +8,12 @@ import { ScholarshipList, type BecaItem, parseCoveragePercentage } from '@/compo
 import { ScholarshipDetail } from '@/components/ScholarshipDetail';
 import { ColombiaMap } from '@/components/ColombiaMap';
 import { OnboardingModal } from '@/components/OnboardingModal';
+import { ScholarshipComparator } from '@/components/ScholarshipComparator';
 import { triggerSaveConfetti } from '@/lib/confetti';
 import { normalizeText } from '@/lib/normalize';
 import { sortBecas } from '@/lib/sort';
 import { type PerfilUsuario } from '@/lib/eligibility';
-import { Heart } from 'lucide-react';
+import { Heart, Scale, AlertCircle, X } from 'lucide-react';
 
 interface DeckAction {
   id: string;
@@ -45,6 +46,11 @@ export default function Home() {
 
   // Elegibilidad user profile
   const [perfil, setPerfil] = useState<PerfilUsuario>({});
+
+  // Comparator state
+  const [compareList, setCompareList] = useState<BecaItem[]>([]);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [compareAlert, setCompareAlert] = useState<string | null>(null);
 
   const [universidadesList, setUniversidadesList] = useState<Array<{ id: string; nombre: string }>>([]);
 
@@ -92,6 +98,34 @@ export default function Home() {
       console.warn('Could not save tubeca_perfil to localStorage:', e);
     }
   }, []);
+
+  const handleToggleCompare = useCallback((beca: BecaItem) => {
+    setCompareList((prev) => {
+      const exists = prev.some((b) => b.id === beca.id);
+      if (exists) {
+        return prev.filter((b) => b.id !== beca.id);
+      }
+      if (prev.length >= 3) {
+        setCompareAlert('Solo puedes comparar hasta 3 becas a la vez.');
+        return prev;
+      }
+      return [...prev, beca];
+    });
+  }, []);
+
+  const handleRemoveFromCompare = useCallback((id: string) => {
+    setCompareList((prev) => prev.filter((b) => b.id !== id));
+  }, []);
+
+  const handleClearCompare = useCallback(() => {
+    setCompareList([]);
+  }, []);
+
+  useEffect(() => {
+    if (!compareAlert) return;
+    const t = setTimeout(() => setCompareAlert(null), 3500);
+    return () => clearTimeout(t);
+  }, [compareAlert]);
 
   // Fetch initial scholarships from API
   useEffect(() => {
@@ -588,6 +622,8 @@ export default function Home() {
                   showingFavoritesOnly={true}
                   onClearFavoritesFilter={() => setShowingFavorites(false)}
                   perfil={perfil}
+                  compareIds={new Set(compareList.map((b) => b.id))}
+                  onToggleCompare={handleToggleCompare}
                 />
               </section>
             ) : (
@@ -612,6 +648,8 @@ export default function Home() {
                   onRetry={handleRetry}
                   onResetFilters={handleResetFilters}
                   perfil={perfil}
+                  onToggleCompare={handleToggleCompare}
+                  isComparing={selectedBeca ? compareList.some((b) => b.id === selectedBeca.id) : false}
                 />
               </section>
             )}
@@ -699,6 +737,122 @@ export default function Home() {
           }
         }}
         onApplyFilters={handleApplyOnboardingFilters}
+      />
+
+      {/* Comparator Floating Bottom Bar */}
+      {compareList.length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 90,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            backgroundColor: '#0f172a',
+            color: '#ffffff',
+            padding: '10px 18px',
+            borderRadius: 'var(--radius-full, 9999px)',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4)',
+            animation: 'fadeIn 0.2s ease-out',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Scale size={18} style={{ color: 'var(--brand-400, #60a5fa)' }} />
+            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+              Comparando {compareList.length} {compareList.length === 1 ? 'beca' : 'becas'} (máx 3)
+            </span>
+          </div>
+
+          <button
+            onClick={() => setIsCompareOpen(true)}
+            style={{
+              backgroundColor: 'var(--brand-600, #2563eb)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: 'var(--radius-full, 9999px)',
+              padding: '6px 14px',
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'background-color 0.15s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-600, #2563eb)')}
+          >
+            Ver comparación
+          </button>
+
+          <button
+            onClick={handleClearCompare}
+            title="Limpiar comparador"
+            style={{
+              backgroundColor: 'transparent',
+              color: 'var(--ink-400, #94a3b8)',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '4px',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Alert toast for max compare limit */}
+      {compareAlert && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '80px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#fef2f2',
+            color: '#b91c1c',
+            border: '1px solid #fecaca',
+            padding: '10px 18px',
+            borderRadius: 'var(--radius-md, 8px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+          }}
+        >
+          <AlertCircle size={18} />
+          <span>{compareAlert}</span>
+          <button
+            onClick={() => setCompareAlert(null)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#b91c1c',
+              cursor: 'pointer',
+              marginLeft: '8px',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Modal Comparator */}
+      <ScholarshipComparator
+        isOpen={isCompareOpen}
+        onClose={() => setIsCompareOpen(false)}
+        becas={compareList}
+        onRemoveBeca={handleRemoveFromCompare}
+        onClear={handleClearCompare}
       />
     </div>
   );

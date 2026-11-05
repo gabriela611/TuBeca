@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   XCircle,
   HelpCircle,
+  Scale,
 } from 'lucide-react';
 import { type BecaItem, parseCoveragePercentage } from './ScholarshipList';
 import { triggerSaveConfetti } from '@/lib/confetti';
@@ -38,6 +39,8 @@ interface TinderCardDeckProps {
   onRetry?: () => void;
   onResetFilters?: () => void;
   perfil?: PerfilUsuario;
+  onToggleCompare?: (beca: BecaItem) => void;
+  isComparing?: boolean;
 }
 
 /**
@@ -122,6 +125,8 @@ export function TinderCardDeck({
   onRetry,
   onResetFilters,
   perfil,
+  onToggleCompare,
+  isComparing = false,
 }: TinderCardDeckProps) {
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -1014,6 +1019,37 @@ export function TinderCardDeck({
         >
           <RotateCcw size={18} strokeWidth={2.2} />
         </button>
+
+        {/* Center: Compare Button */}
+        {onToggleCompare && activeBeca && (
+          <button
+            onClick={() => onToggleCompare(activeBeca)}
+            title={isComparing ? 'Quitar de comparación' : 'Agregar al comparador'}
+            aria-label={isComparing ? 'Quitar de comparación' : 'Agregar al comparador'}
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              backgroundColor: isComparing ? 'var(--brand-50)' : '#ffffff',
+              border: `1.5px solid ${isComparing ? 'var(--brand-600)' : 'var(--border-subtle)'}`,
+              color: isComparing ? 'var(--brand-600)' : 'var(--ink-700)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'var(--shadow-sm)',
+              cursor: 'pointer',
+              transition: 'transform var(--duration-fast) var(--ease-smooth-out), background-color var(--duration-fast) var(--ease-smooth-out)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            <Scale size={18} strokeWidth={2.2} />
+          </button>
+        )}
 
         {/* Right: Save / Heart Button */}
         <button
