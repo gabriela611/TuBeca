@@ -203,6 +203,74 @@ async function main() {
     },
   });
 
+  const uniUnalMed = await prisma.universidad.upsert({
+    where: { nombre: 'Universidad Nacional de Colombia (Sede Medellín)' },
+    update: {
+      ciudad: 'Medellín',
+      departamento: 'Antioquia',
+      sitioWeb: 'https://medellin.unal.edu.co',
+      tipo: 'publica',
+    },
+    create: {
+      nombre: 'Universidad Nacional de Colombia (Sede Medellín)',
+      ciudad: 'Medellín',
+      departamento: 'Antioquia',
+      sitioWeb: 'https://medellin.unal.edu.co',
+      tipo: 'publica',
+    },
+  });
+
+  const uniUdeA = await prisma.universidad.upsert({
+    where: { nombre: 'Universidad de Antioquia (UdeA)' },
+    update: {
+      ciudad: 'Medellín',
+      departamento: 'Antioquia',
+      sitioWeb: 'https://www.udea.edu.co',
+      tipo: 'publica',
+    },
+    create: {
+      nombre: 'Universidad de Antioquia (UdeA)',
+      ciudad: 'Medellín',
+      departamento: 'Antioquia',
+      sitioWeb: 'https://www.udea.edu.co',
+      tipo: 'publica',
+    },
+  });
+
+  const uniIcetex = await prisma.universidad.upsert({
+    where: { nombre: 'ICETEX' },
+    update: {
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://portal.icetex.gov.co',
+      tipo: 'publica',
+    },
+    create: {
+      nombre: 'ICETEX',
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://portal.icetex.gov.co',
+      tipo: 'publica',
+    },
+  });
+
+  const uniColfuturo = await prisma.universidad.upsert({
+    where: { nombre: 'COLFUTURO' },
+    update: {
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://www.colfuturo.org',
+      tipo: 'privada',
+    },
+    create: {
+      nombre: 'COLFUTURO',
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://www.colfuturo.org',
+      tipo: 'privada',
+    },
+  });
+
   const universityMap: Record<string, string> = {
     'Universidad EAFIT': uniEafit.id,
     'Universidad Pontificia Bolivariana (UPB)': uniUpb.id,
@@ -213,6 +281,10 @@ async function main() {
     'Universidad del Rosario': uniRosario.id,
     'Universidad Externado de Colombia': uniExternado.id,
     'Universidad Icesi': uniIcesi.id,
+    'Universidad Nacional de Colombia (Sede Medellín)': uniUnalMed.id,
+    'Universidad de Antioquia (UdeA)': uniUdeA.id,
+    'ICETEX': uniIcetex.id,
+    'COLFUTURO': uniColfuturo.id,
   };
 
   // 2. Seed Categorías
