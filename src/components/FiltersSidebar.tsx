@@ -12,6 +12,8 @@ export interface FilterState {
   departamento: string;
   universidadTipo: string;
   categoria: string;
+  modalidad?: string;
+  universidad?: string;
 }
 
 interface FiltersSidebarProps {
@@ -23,6 +25,7 @@ interface FiltersSidebarProps {
   ciudades: string[];
   departamentos?: string[];
   categorias: string[];
+  universidades?: Array<{ id: string; nombre: string }>;
   onCloseMobile?: () => void;
   orden?: string;
   onOrdenChange?: (orden: string) => void;
@@ -39,6 +42,7 @@ export function FiltersSidebar({
   ciudades,
   departamentos,
   categorias,
+  universidades = [],
   onCloseMobile,
   orden = 'cierra_pronto',
   onOrdenChange,
@@ -50,7 +54,9 @@ export function FiltersSidebar({
     filters.tipo !== '' ||
     filters.cobertura !== '' ||
     activeCity !== '' ||
-    filters.categoria !== '';
+    filters.categoria !== '' ||
+    Boolean(filters.modalidad) ||
+    Boolean(filters.universidad);
 
   const tipoOptions = [
     { id: '', label: 'Todos los niveles' },
@@ -64,6 +70,13 @@ export function FiltersSidebar({
     { id: '', label: 'Cualquier cobertura' },
     { id: 'total', label: '100% Total' },
     { id: 'parcial', label: 'Parcial' },
+  ];
+
+  const modalidadOptions = [
+    { id: '', label: 'Todas las modalidades' },
+    { id: 'presencial', label: 'Presencial' },
+    { id: 'virtual', label: 'Virtual' },
+    { id: 'mixta', label: 'Mixta' },
   ];
 
   const availableCities = ciudades && ciudades.length > 0 ? ciudades : departamentos || [];
@@ -540,6 +553,98 @@ export function FiltersSidebar({
           ))}
         </select>
       </section>
+
+      {/* 5. Modalidad */}
+      <section>
+        <label
+          style={{
+            display: 'block',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            color: 'var(--ink-500)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            marginBottom: '8px',
+          }}
+        >
+          Modalidad
+        </label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {modalidadOptions.map((opt) => {
+            const isSelected = (filters.modalidad || '') === opt.id;
+            return (
+              <button
+                key={opt.id}
+                onClick={() => onFilterChange('modalidad', opt.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '7px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.8125rem',
+                  fontWeight: isSelected ? 600 : 500,
+                  color: isSelected ? 'var(--brand-700)' : 'var(--ink-700)',
+                  backgroundColor: isSelected ? 'var(--brand-50)' : 'transparent',
+                  textAlign: 'left',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--surface-subtle)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                <span>{opt.label}</span>
+                {isSelected && <Check size={14} style={{ color: 'var(--brand-600)' }} />}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 6. Universidad */}
+      {universidades && universidades.length > 0 && (
+        <section>
+          <label
+            style={{
+              display: 'block',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              color: 'var(--ink-500)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              marginBottom: '8px',
+            }}
+          >
+            Universidad
+          </label>
+          <select
+            value={filters.universidad || ''}
+            onChange={(e) => onFilterChange('universidad', e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px 10px',
+              fontSize: '0.8125rem',
+              backgroundColor: 'var(--surface-subtle)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--ink-900)',
+              outline: 'none',
+            }}
+          >
+            <option value="">Todas las universidades</option>
+            {universidades.map((u) => (
+              <option key={u.id} value={u.nombre}>
+                {u.nombre}
+              </option>
+            ))}
+          </select>
+        </section>
+      )}
     </aside>
   );
 }

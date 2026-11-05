@@ -46,6 +46,8 @@ export default function Home() {
   // Elegibilidad user profile
   const [perfil, setPerfil] = useState<PerfilUsuario>({});
 
+  const [universidadesList, setUniversidadesList] = useState<Array<{ id: string; nombre: string }>>([]);
+
   const [filters, setFilters] = useState<FilterState>({
     tipo: '',
     cobertura: '',
@@ -54,6 +56,8 @@ export default function Home() {
     departamento: '',
     universidadTipo: '',
     categoria: '',
+    modalidad: '',
+    universidad: '',
   });
 
   // Load favorites and check onboarding status from localStorage
@@ -120,6 +124,22 @@ export default function Home() {
     }
 
     fetchInitialBecas();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  // Fetch universidades for filters
+  useEffect(() => {
+    let ignore = false;
+    fetch('/api/universidades')
+      .then((res) => res.json())
+      .then((json) => {
+        if (!ignore && json.data && Array.isArray(json.data)) {
+          setUniversidadesList(json.data);
+        }
+      })
+      .catch((err) => console.error('Error fetching universidades:', err));
     return () => {
       ignore = true;
     };
@@ -229,6 +249,23 @@ export default function Home() {
           (c) => c.categoria.nombre.toLowerCase() === filters.categoria.toLowerCase(),
         );
         if (!hasCategory) return false;
+      }
+
+      // 8. Modalidad
+      if (filters.modalidad) {
+        const mod = normalizeText(beca.modalidad);
+        if (!mod.includes(normalizeText(filters.modalidad))) {
+          return false;
+        }
+      }
+
+      // 9. Universidad
+      if (filters.universidad) {
+        const targetUni = normalizeText(filters.universidad);
+        const becaUni = normalizeText(beca.universidad || beca.universidadRel?.nombre);
+        if (!becaUni.includes(targetUni)) {
+          return false;
+        }
       }
 
       return true;
@@ -360,6 +397,8 @@ export default function Home() {
       departamento: '',
       universidadTipo: '',
       categoria: '',
+      modalidad: '',
+      universidad: '',
     });
     setOrden('cierra_pronto');
     setSearchQuery('');
@@ -398,6 +437,8 @@ export default function Home() {
     if (filters.cobertura) count++;
     if (filters.ciudad || filters.departamento) count++;
     if (filters.categoria) count++;
+    if (filters.modalidad) count++;
+    if (filters.universidad) count++;
     return count;
   }, [filters]);
 
@@ -453,6 +494,7 @@ export default function Home() {
             totalCount={allBecas.length}
             ciudades={ciudades}
             categorias={categorias}
+            universidades={universidadesList}
             orden={orden}
             onOrdenChange={handleOrdenChange}
             perfil={perfil}
@@ -634,6 +676,7 @@ export default function Home() {
               totalCount={allBecas.length}
               ciudades={ciudades}
               categorias={categorias}
+              universidades={universidadesList}
               onCloseMobile={() => setIsMobileFilterOpen(false)}
               orden={orden}
               onOrdenChange={handleOrdenChange}

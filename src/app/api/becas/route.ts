@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     const ciudad = searchParams.get('ciudad') || searchParams.get('municipio');
     const universidad = searchParams.get('universidad');
     const cobertura = searchParams.get('cobertura');
+    const modalidad = searchParams.get('modalidad');
     const query = searchParams.get('q');
     const orden = searchParams.get('orden') || 'cierra_pronto';
     const page = parseInt(searchParams.get('page') || '1', 10);
@@ -36,6 +37,10 @@ export async function GET(request: NextRequest) {
 
     if (tipo) {
       where.nivelAcademico = { contains: tipo, mode: 'insensitive' };
+    }
+
+    if (modalidad) {
+      where.modalidad = { contains: modalidad, mode: 'insensitive' };
     }
 
     if (estado) {
