@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import {
   ExternalLink,
@@ -35,6 +35,43 @@ export function ScholarshipDetail({
   perfil,
 }: ScholarshipDetailProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [checkedMap, setCheckedMap] = useState<Record<string, number[]>>({});
+
+  const becaId = beca?.id || beca?.idBeca || '';
+
+  const getCheckedIndices = useCallback((): number[] => {
+    if (!becaId) return [];
+    if (checkedMap[becaId]) return checkedMap[becaId];
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`tubeca_docs_${becaId}`);
+        if (stored) return JSON.parse(stored);
+      } catch {
+        // ignore
+      }
+    }
+    return [];
+  }, [becaId, checkedMap]);
+
+  const currentCheckedList = getCheckedIndices();
+  const currentCheckedSet = new Set(currentCheckedList);
+
+  const handleToggleDoc = (idx: number) => {
+    if (!becaId) return;
+    const set = new Set<number>(currentCheckedList);
+    if (set.has(idx)) {
+      set.delete(idx);
+    } else {
+      set.add(idx);
+    }
+    const nextArr: number[] = Array.from(set);
+    setCheckedMap((prev) => ({ ...prev, [becaId]: nextArr }));
+    try {
+      localStorage.setItem(`tubeca_docs_${becaId}`, JSON.stringify(nextArr));
+    } catch (err) {
+      console.warn('Could not save checked docs:', err);
+    }
+  };
 
   useEffect(() => {
     if (beca && containerRef.current) {
@@ -580,42 +617,102 @@ export function ScholarshipDetail({
         </ul>
       </div>
 
-      {/* Documentos requeridos si aplica */}
+      {/* Checklist de Documentos Requeridos */}
       {documentsList && documentsList.length > 0 && (
-        <div>
-          <h2
+        <div
+          style={{
+            padding: '16px',
+            backgroundColor: 'var(--surface-subtle)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div
             style={{
-              fontSize: '0.8125rem',
-              fontWeight: 700,
-              color: 'var(--ink-500)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-              marginBottom: '10px',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              justifyContent: 'space-between',
+              marginBottom: '12px',
+              flexWrap: 'wrap',
+              gap: '8px',
             }}
           >
-            <FileText size={14} style={{ color: 'var(--brand-600)' }} />
-            Documentos Requeridos
-          </h2>
-          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {documentsList.map((doc, idx) => (
-              <li
-                key={idx}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '8px',
-                  fontSize: '0.8125rem',
-                  color: 'var(--ink-700)',
-                  lineHeight: 1.45,
-                }}
-              >
-                <span style={{ color: 'var(--brand-600)', fontWeight: 700 }}>•</span>
-                <span>{doc}</span>
-              </li>
-            ))}
+            <h2
+              style={{
+                fontSize: '0.8125rem',
+                fontWeight: 700,
+                color: 'var(--ink-700)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                margin: 0,
+              }}
+            >
+              <FileText size={15} style={{ color: 'var(--brand-600)' }} />
+              Documentos Requeridos
+            </h2>
+            <span
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: currentCheckedSet.size === documentsList.length ? '#f0fdf4' : 'var(--brand-50)',
+                color: currentCheckedSet.size === documentsList.length ? '#15803d' : 'var(--brand-700)',
+                border: `1px solid ${currentCheckedSet.size === documentsList.length ? '#bbf7d0' : 'var(--brand-200)'}`,
+              }}
+            >
+              {currentCheckedSet.size} de {documentsList.length} listos
+            </span>
+          </div>
+
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', margin: 0, padding: 0 }}>
+            {documentsList.map((doc, idx) => {
+              const isChecked = currentCheckedSet.has(idx);
+              return (
+                <li key={idx}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '10px',
+                      fontSize: '0.8125rem',
+                      lineHeight: 1.45,
+                      cursor: 'pointer',
+                      padding: '4px 6px',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: isChecked ? 'rgba(22, 163, 74, 0.05)' : 'transparent',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => handleToggleDoc(idx)}
+                      style={{
+                        marginTop: '2px',
+                        accentColor: 'var(--brand-600)',
+                        cursor: 'pointer',
+                        width: '15px',
+                        height: '15px',
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span
+                      style={{
+                        color: isChecked ? 'var(--ink-400)' : 'var(--ink-800)',
+                        textDecoration: isChecked ? 'line-through' : 'none',
+                        transition: 'color 0.15s ease',
+                      }}
+                    >
+                      {doc}
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
