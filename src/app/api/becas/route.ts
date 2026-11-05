@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { calcularEstado } from '@/lib/estado';
+import { sortBecas } from '@/lib/sort';
 
 /**
  * GET /api/becas
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
     const universidad = searchParams.get('universidad');
     const cobertura = searchParams.get('cobertura');
     const query = searchParams.get('q');
+    const orden = searchParams.get('orden') || 'cierra_pronto';
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 200);
     const skip = (page - 1) * limit;
@@ -127,8 +129,10 @@ export async function GET(request: NextRequest) {
       estado: calcularEstado(b.fechaApertura, b.fechaCierre, null, b.estadoConvocatoria),
     }));
 
+    const sortedBecas = sortBecas(formattedBecas, orden);
+
     return NextResponse.json({
-      data: formattedBecas,
+      data: sortedBecas,
       pagination: {
         page,
         limit,

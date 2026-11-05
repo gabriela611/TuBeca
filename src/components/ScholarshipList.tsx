@@ -1,7 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Building2, Heart, AlertCircle } from 'lucide-react';
+import { Building2, Heart, AlertCircle, Clock } from 'lucide-react';
+import { parseCoveragePercentage } from '@/lib/coverage';
+import { diasRestantes } from '@/lib/countdown';
+
+export { parseCoveragePercentage };
 
 export interface BecaItem {
   id: string;
@@ -65,42 +69,6 @@ interface ScholarshipListProps {
   onClearFavoritesFilter?: () => void;
 }
 
-/**
- * Helper to parse a numeric percentage (0-100) from the scholarship data
- */
-export function parseCoveragePercentage(
-  porcentaje?: string | null,
-  tipoFinanciacion?: string | null,
-  cobertura?: string | null,
-  porcentajeCobertura?: number | null
-): number {
-  if (typeof porcentajeCobertura === 'number' && porcentajeCobertura > 0) {
-    return Math.min(Math.round(porcentajeCobertura), 100);
-  }
-  if (porcentaje) {
-    // If range like "40 %–100 %", extract upper bound
-    const rangeMatch = porcentaje.match(/[–-]\s*(\d+)/);
-    if (rangeMatch) {
-      const val = parseInt(rangeMatch[1], 10);
-      if (!isNaN(val) && val > 0 && val <= 100) return val;
-    }
-    const pctMatch = porcentaje.match(/(\d+)\s*%/);
-    if (pctMatch) {
-      const val = parseInt(pctMatch[1], 10);
-      if (!isNaN(val) && val > 0 && val <= 100) return val;
-    }
-    const anyDigit = porcentaje.match(/\d+/);
-    if (anyDigit) {
-      const val = parseInt(anyDigit[0], 10);
-      if (!isNaN(val) && val > 0 && val <= 100) return val;
-    }
-  }
-
-  const text = `${tipoFinanciacion || ''} ${cobertura || ''}`.toLowerCase();
-  if (text.includes('total') || text.includes('100')) return 100;
-  if (text.includes('parcial') || text.includes('sostenimiento') || text.includes('50')) return 50;
-  return 100;
-}
 
 /**
  * Anillo animado de porcentaje de cobertura con centrado óptico y texto adyacente
@@ -326,6 +294,7 @@ export function ScholarshipList({
           'Universidad';
 
         const scholarshipTitle = beca.nombreBeca || beca.titulo || 'Beca';
+        const countdown = diasRestantes(beca.fechaCierre);
 
         return (
           <div
@@ -438,9 +407,43 @@ export function ScholarshipList({
               {scholarshipTitle}
             </h3>
 
-            {/* Bottom Row: Animated Coverage Ring Badge + plain "Cobertura" text */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px' }}>
+            {/* Bottom Row: Animated Coverage Ring Badge + plain "Cobertura" text + Countdown */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px', gap: '8px' }}>
               <CoverageRing percentage={percentage} isTotal={isTotal} />
+              {beca.fechaCierre && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '0.6875rem',
+                    fontWeight: 700,
+                    padding: '3px 8px',
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: countdown.esVencida
+                      ? 'var(--surface-subtle)'
+                      : countdown.esUrgente
+                        ? '#fef2f2'
+                        : 'var(--brand-50)',
+                    color: countdown.esVencida
+                      ? 'var(--ink-500)'
+                      : countdown.esUrgente
+                        ? '#dc2626'
+                        : 'var(--brand-700)',
+                    border: `1px solid ${
+                      countdown.esVencida
+                        ? 'var(--border-subtle)'
+                        : countdown.esUrgente
+                          ? '#fecaca'
+                          : 'var(--brand-200)'
+                    }`,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Clock size={11} strokeWidth={2.4} />
+                  <span>{countdown.texto}</span>
+                </span>
+              )}
             </div>
           </div>
         );

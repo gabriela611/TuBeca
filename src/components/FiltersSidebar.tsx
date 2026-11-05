@@ -23,6 +23,8 @@ interface FiltersSidebarProps {
   departamentos?: string[];
   categorias: string[];
   onCloseMobile?: () => void;
+  orden?: string;
+  onOrdenChange?: (orden: string) => void;
 }
 
 export function FiltersSidebar({
@@ -35,6 +37,8 @@ export function FiltersSidebar({
   departamentos,
   categorias,
   onCloseMobile,
+  orden = 'cierra_pronto',
+  onOrdenChange,
 }: FiltersSidebarProps) {
   const activeCity = filters.ciudad || filters.departamento || '';
   const hasActiveFilters =
@@ -156,6 +160,45 @@ export function FiltersSidebar({
           {totalFiltered} de {totalCount}
         </strong>
       </div>
+
+      {/* Selector de Orden */}
+      <section>
+        <label
+          htmlFor="tubeca-sort-select"
+          style={{
+            display: 'block',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            color: 'var(--ink-500)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            marginBottom: '8px',
+          }}
+        >
+          Ordenar por
+        </label>
+        <select
+          id="tubeca-sort-select"
+          value={orden}
+          onChange={(e) => onOrdenChange?.(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            borderRadius: 'var(--radius-sm)',
+            border: '1.5px solid var(--border-subtle)',
+            backgroundColor: 'var(--surface-base)',
+            color: 'var(--ink-900)',
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            outline: 'none',
+          }}
+        >
+          <option value="cierra_pronto">Cierra pronto</option>
+          <option value="mayor_cobertura">Mayor cobertura</option>
+          <option value="recientes">Recientes</option>
+        </select>
+      </section>
 
       {/* 1. Nivel de estudio */}
       <section>

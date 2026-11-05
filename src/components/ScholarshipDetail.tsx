@@ -12,8 +12,10 @@ import {
   Info,
   Users,
   FileText,
+  Clock,
 } from 'lucide-react';
 import { type BecaItem, parseCoveragePercentage } from './ScholarshipList';
+import { diasRestantes } from '@/lib/countdown';
 
 interface ScholarshipDetailProps {
   beca: BecaItem | null;
@@ -429,10 +431,48 @@ export function ScholarshipDetail({
           <strong style={{ color: 'var(--ink-900)' }}>{formatIsoDate(beca.fechaApertura)}</strong>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Calendar size={14} style={{ color: 'var(--brand-600)' }} />
-          <span style={{ color: 'var(--ink-500)' }}>Cierre:</span>
-          <strong style={{ color: 'var(--brand-700)' }}>{formatIsoDate(beca.fechaCierre)}</strong>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Calendar size={14} style={{ color: 'var(--brand-600)' }} />
+            <span style={{ color: 'var(--ink-500)' }}>Cierre:</span>
+            <strong style={{ color: 'var(--brand-700)' }}>{formatIsoDate(beca.fechaCierre)}</strong>
+          </div>
+          {beca.fechaCierre && (() => {
+            const countdown = diasRestantes(beca.fechaCierre);
+            return (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: countdown.esVencida
+                    ? 'var(--surface-subtle)'
+                    : countdown.esUrgente
+                      ? '#fef2f2'
+                      : 'var(--brand-50)',
+                  color: countdown.esVencida
+                    ? 'var(--ink-500)'
+                    : countdown.esUrgente
+                      ? '#dc2626'
+                      : 'var(--brand-700)',
+                  border: `1px solid ${
+                    countdown.esVencida
+                      ? 'var(--border-subtle)'
+                      : countdown.esUrgente
+                        ? '#fecaca'
+                        : 'var(--brand-200)'
+                  }`,
+                }}
+              >
+                <Clock size={11} strokeWidth={2.4} />
+                <span>{countdown.texto}</span>
+              </span>
+            );
+          })()}
         </div>
       </div>
 

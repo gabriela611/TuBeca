@@ -3,9 +3,16 @@ export type EstadoConvocatoria = 'activa' | 'proxima' | 'vencida';
 /**
  * Convierte una fecha a string YYYY-MM-DD en la zona horaria America/Bogota.
  */
-export function toBogotaDateString(date: Date | string): string {
+export function toBogotaDateString(date: Date | string | null | undefined): string {
+  if (!date) return '';
+  if (typeof date === 'string') {
+    const trimmed = date.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+  }
   const d = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(d.getTime())) return '';
+  if (!d || isNaN(d.getTime())) return '';
   
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Bogota',

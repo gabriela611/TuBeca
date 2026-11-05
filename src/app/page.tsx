@@ -10,6 +10,7 @@ import { ColombiaMap } from '@/components/ColombiaMap';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { triggerSaveConfetti } from '@/lib/confetti';
 import { normalizeText } from '@/lib/normalize';
+import { sortBecas } from '@/lib/sort';
 import { Heart } from 'lucide-react';
 
 interface DeckAction {
@@ -39,6 +40,7 @@ export default function Home() {
 
   // Onboarding state
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [orden, setOrden] = useState<string>('cierra_pronto');
 
   const [filters, setFilters] = useState<FilterState>({
     tipo: '',
@@ -130,7 +132,7 @@ export default function Home() {
 
   // Filter scholarships locally based on search and sidebar filters
   const filteredBecas = useMemo(() => {
-    return allBecas.filter((beca) => {
+    const result = allBecas.filter((beca) => {
       // 1. Text search
       if (searchQuery.trim()) {
         const queryNorm = normalizeText(searchQuery);
@@ -213,7 +215,9 @@ export default function Home() {
 
       return true;
     });
-  }, [allBecas, searchQuery, filters]);
+
+    return sortBecas(result, orden);
+  }, [allBecas, searchQuery, filters, orden]);
 
   // List of saved scholarships (for the saved list view)
   const savedBecas = useMemo(() => {
@@ -339,8 +343,15 @@ export default function Home() {
       universidadTipo: '',
       categoria: '',
     });
+    setOrden('cierra_pronto');
     setSearchQuery('');
     setShowingFavorites(false);
+    setCardIndex(0);
+    setHistory([]);
+  };
+
+  const handleOrdenChange = (newOrden: string) => {
+    setOrden(newOrden);
     setCardIndex(0);
     setHistory([]);
   };
@@ -424,6 +435,8 @@ export default function Home() {
             totalCount={allBecas.length}
             ciudades={ciudades}
             categorias={categorias}
+            orden={orden}
+            onOrdenChange={handleOrdenChange}
           />
         </div>
 
@@ -599,6 +612,8 @@ export default function Home() {
               ciudades={ciudades}
               categorias={categorias}
               onCloseMobile={() => setIsMobileFilterOpen(false)}
+              orden={orden}
+              onOrdenChange={handleOrdenChange}
             />
           </div>
         </div>
