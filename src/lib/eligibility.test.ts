@@ -76,3 +76,4 @@ test('evaluarElegibilidad: valida estrato socioeconómico', () => {
   assert.equal(evaluarElegibilidad(beca, perfilNo).estado, 'no_cumples');
   assert.equal(evaluarElegibilidad(beca, perfilSi).estado, 'cumples');
 });
+

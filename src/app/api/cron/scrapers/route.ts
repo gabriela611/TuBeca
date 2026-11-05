@@ -45,3 +45,4 @@ async function handleScrapersCron(request: NextRequest) {
     return NextResponse.json({ error: 'Error ejecutando scrapers' }, { status: 500 });
   }
 }
+

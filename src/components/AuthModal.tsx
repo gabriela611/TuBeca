@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Mail, CheckCircle2, AlertCircle, LogOut, User, Sparkles } from 'lucide-react';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabaseClient } from '@/lib/supabase/client';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -29,16 +29,17 @@ export function AuthModal({ isOpen, onClose, user, onSignOut }: AuthModalProps) 
     setLoading(true);
     setErrorMsg(null);
 
-    if (!supabase) {
+    const client = await getSupabaseClient();
+    if (!client) {
       setErrorMsg(
-        'Supabase Auth no está configurado aún en las variables de entorno (NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY). La app continuará guardando tus datos en este navegador.'
+        'Supabase Auth no está configurado aún en las variables de entorno (SUPABASE_URL y SUPABASE_ANON_KEY). La app continuará guardando tus datos en este navegador.'
       );
       setLoading(false);
       return;
     }
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error } = await client.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
@@ -369,3 +370,4 @@ export function AuthModal({ isOpen, onClose, user, onSignOut }: AuthModalProps) 
     </div>
   );
 }
+

@@ -77,3 +77,4 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Error al actualizar perfil' }, { status: 500 });
   }
 }
+

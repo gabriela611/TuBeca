@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/db/prisma';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tubeca.co';
+  const baseUrl = process.env.APP_URL || 'https://tubeca.co';
 
   let becas: Array<{ id: string; fechaActualizacion: Date | null }> = [];
   try {

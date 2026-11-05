@@ -77,3 +77,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Error al actualizar favorito' }, { status: 500 });
   }
 }
+

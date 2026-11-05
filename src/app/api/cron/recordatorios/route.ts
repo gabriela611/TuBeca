@@ -30,7 +30,7 @@ async function handleRecordatorios(request: NextRequest) {
   }
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tubeca.co';
+    const baseUrl = process.env.APP_URL || 'https://tubeca.co';
     const resendApiKey = process.env.RESEND_API_KEY;
     const resend = resendApiKey ? new Resend(resendApiKey) : null;
 

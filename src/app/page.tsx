@@ -10,7 +10,7 @@ import { ColombiaMap } from '@/components/ColombiaMap';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { ScholarshipComparator } from '@/components/ScholarshipComparator';
 import { AuthModal } from '@/components/AuthModal';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabaseClient } from '@/lib/supabase/client';
 import { triggerSaveConfetti } from '@/lib/confetti';
 import { normalizeText } from '@/lib/normalize';
 import { sortBecas } from '@/lib/sort';
@@ -160,36 +160,43 @@ export default function Home() {
   );
 
   useEffect(() => {
-    if (!supabase) return;
+    let unsub: (() => void) | undefined;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        const u = { id: session.user.id, email: session.user.email || '' };
-        setUser(u);
-        syncUserWithServer(u.id, u.email);
-      }
-    });
+    getSupabaseClient().then((client) => {
+      if (!client) return;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        const u = { id: session.user.id, email: session.user.email || '' };
-        setUser(u);
-        syncUserWithServer(u.id, u.email);
-      } else {
-        setUser(null);
-      }
+      client.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          const u = { id: session.user.id, email: session.user.email || '' };
+          setUser(u);
+          syncUserWithServer(u.id, u.email);
+        }
+      });
+
+      const {
+        data: { subscription },
+      } = client.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          const u = { id: session.user.id, email: session.user.email || '' };
+          setUser(u);
+          syncUserWithServer(u.id, u.email);
+        } else {
+          setUser(null);
+        }
+      });
+
+      unsub = () => subscription.unsubscribe();
     });
 
     return () => {
-      subscription.unsubscribe();
+      unsub?.();
     };
   }, [syncUserWithServer]);
 
   const handleSignOut = useCallback(async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
+    const client = await getSupabaseClient();
+    if (client) {
+      await client.auth.signOut();
     }
     setUser(null);
   }, []);

@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tubeca.co';
+  const baseUrl = process.env.APP_URL || 'https://tubeca.co';
   return {
     rules: {
       userAgent: '*',
@@ -11,3 +11,4 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
+

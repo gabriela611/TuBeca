@@ -65,3 +65,4 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Error al procesar la solicitud.', { status: 500 });
   }
 }
+
