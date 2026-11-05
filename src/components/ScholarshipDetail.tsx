@@ -16,6 +16,8 @@ import {
   CheckCircle2,
   XCircle,
   HelpCircle,
+  Share2,
+  Copy,
 } from 'lucide-react';
 import { type BecaItem, parseCoveragePercentage } from './ScholarshipList';
 import { diasRestantes } from '@/lib/countdown';
@@ -23,19 +25,20 @@ import { evaluarElegibilidad, type PerfilUsuario } from '@/lib/eligibility';
 
 interface ScholarshipDetailProps {
   beca: BecaItem | null;
-  isFavorite: boolean;
-  onToggleFavorite: (id: string, e: React.MouseEvent) => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: string, e: React.MouseEvent) => void;
   perfil?: PerfilUsuario;
 }
 
 export function ScholarshipDetail({
   beca,
-  isFavorite,
+  isFavorite = false,
   onToggleFavorite,
   perfil,
 }: ScholarshipDetailProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [checkedMap, setCheckedMap] = useState<Record<string, number[]>>({});
+  const [copied, setCopied] = useState(false);
 
   const becaId = beca?.id || beca?.idBeca || '';
 
@@ -222,7 +225,7 @@ export function ScholarshipDetail({
           </span>
 
           <button
-            onClick={(e) => onToggleFavorite(beca.id, e)}
+            onClick={(e) => onToggleFavorite?.(beca.id, e)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -737,8 +740,72 @@ export function ScholarshipDetail({
         </div>
       )}
 
-      {/* Primary Action Button (Postularse en sitio oficial) */}
-      <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
+      {/* Action and Share Section */}
+      <div style={{ marginTop: 'auto', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* WhatsApp & Copy Link buttons */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(
+              `¡Mira esta beca en TuBeca! ${scholarshipTitle} en ${uniName}: ${
+                typeof window !== 'undefined' ? `${window.location.origin}/becas/${beca.id}` : `https://tubeca.co/becas/${beca.id}`
+              }`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '9px 12px',
+              backgroundColor: '#25D366',
+              color: '#ffffff',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              textDecoration: 'none',
+              boxShadow: '0 2px 6px rgba(37, 211, 102, 0.25)',
+              transition: 'filter 0.15s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(0.95)')}
+            onMouseLeave={(e) => (e.currentTarget.style.filter = 'none')}
+          >
+            <Share2 size={14} />
+            <span>Compartir WhatsApp</span>
+          </a>
+
+          <button
+            onClick={() => {
+              const url = typeof window !== 'undefined'
+                ? `${window.location.origin}/becas/${beca.id}`
+                : `https://tubeca.co/becas/${beca.id}`;
+              navigator.clipboard.writeText(url).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2500);
+              });
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '9px 12px',
+              backgroundColor: copied ? '#f0fdf4' : 'var(--surface-subtle)',
+              color: copied ? '#15803d' : 'var(--ink-700)',
+              border: `1px solid ${copied ? '#bbf7d0' : 'var(--border-subtle)'}`,
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            <span>{copied ? '¡Enlace copiado!' : 'Copiar enlace'}</span>
+          </button>
+        </div>
+
+        {/* Primary Action Button (Postularse en sitio oficial) */}
         {officialUrl ? (
           <a
             href={officialUrl}
@@ -757,6 +824,7 @@ export function ScholarshipDetail({
               fontSize: '0.875rem',
               fontWeight: 700,
               boxShadow: 'var(--shadow-sm)',
+              textDecoration: 'none',
               transition: 'background-color 0.15s ease',
             }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-700)')}
