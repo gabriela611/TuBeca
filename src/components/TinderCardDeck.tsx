@@ -11,9 +11,15 @@ import {
   Layers,
   AlertCircle,
   SearchX,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
 } from 'lucide-react';
 import { type BecaItem, parseCoveragePercentage } from './ScholarshipList';
 import { triggerSaveConfetti } from '@/lib/confetti';
+import { diasRestantes } from '@/lib/countdown';
+import { evaluarElegibilidad, type PerfilUsuario } from '@/lib/eligibility';
 
 interface TinderCardDeckProps {
   becas: BecaItem[];
@@ -31,6 +37,7 @@ interface TinderCardDeckProps {
   loadError?: string | null;
   onRetry?: () => void;
   onResetFilters?: () => void;
+  perfil?: PerfilUsuario;
 }
 
 /**
@@ -114,6 +121,7 @@ export function TinderCardDeck({
   loadError,
   onRetry,
   onResetFilters,
+  perfil,
 }: TinderCardDeckProps) {
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -805,6 +813,56 @@ export function TinderCardDeck({
               )}
             </div>
 
+            {/* Eligibility badge */}
+            {(() => {
+              const elegibilidad = evaluarElegibilidad(activeBeca, perfil);
+              return (
+                <div style={{ marginBottom: '12px' }}>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: 'var(--radius-full)',
+                      backgroundColor:
+                        elegibilidad.estado === 'cumples'
+                          ? '#f0fdf4'
+                          : elegibilidad.estado === 'no_cumples'
+                            ? '#fef2f2'
+                            : 'var(--surface-subtle)',
+                      color:
+                        elegibilidad.estado === 'cumples'
+                          ? '#15803d'
+                          : elegibilidad.estado === 'no_cumples'
+                            ? '#b91c1c'
+                            : 'var(--ink-600)',
+                      border: `1px solid ${
+                        elegibilidad.estado === 'cumples'
+                          ? '#bbf7d0'
+                          : elegibilidad.estado === 'no_cumples'
+                            ? '#fecaca'
+                            : 'var(--border-subtle)'
+                      }`,
+                    }}
+                  >
+                    {elegibilidad.estado === 'cumples' && <CheckCircle2 size={13} strokeWidth={2.4} />}
+                    {elegibilidad.estado === 'no_cumples' && <XCircle size={13} strokeWidth={2.4} />}
+                    {elegibilidad.estado === 'faltan_datos' && <HelpCircle size={13} strokeWidth={2.4} />}
+                    <span>
+                      {elegibilidad.estado === 'cumples'
+                        ? 'Cumples requisitos'
+                        : elegibilidad.estado === 'no_cumples'
+                          ? `No cumples: ${elegibilidad.motivo}`
+                          : 'Faltan datos de perfil'}
+                    </span>
+                  </span>
+                </div>
+              );
+            })()}
+
             {/* Excerpt Description */}
             {activeBeca.descripcion && (
               <p
@@ -835,20 +893,52 @@ export function TinderCardDeck({
           >
             <CoverageRingMini percentage={percentage} />
 
-            {activeBeca.fechaCierre && (
-              <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--ink-400)', textTransform: 'uppercase', display: 'block' }}>
-                  Cierre de convocatoria
-                </span>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--ink-900)' }}>
-                  {new Date(activeBeca.fechaCierre).toLocaleDateString('es-CO', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </span>
-              </div>
-            )}
+            {activeBeca.fechaCierre && (() => {
+              const countdown = diasRestantes(activeBeca.fechaCierre);
+              return (
+                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '0.6875rem',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: 'var(--radius-full)',
+                      backgroundColor: countdown.esVencida
+                        ? 'var(--surface-subtle)'
+                        : countdown.esUrgente
+                          ? '#fef2f2'
+                          : 'var(--brand-50)',
+                      color: countdown.esVencida
+                        ? 'var(--ink-500)'
+                        : countdown.esUrgente
+                          ? '#dc2626'
+                          : 'var(--brand-700)',
+                      border: `1px solid ${
+                        countdown.esVencida
+                          ? 'var(--border-subtle)'
+                          : countdown.esUrgente
+                            ? '#fecaca'
+                            : 'var(--brand-200)'
+                      }`,
+                    }}
+                  >
+                    <Clock size={11} strokeWidth={2.4} />
+                    <span>{countdown.texto}</span>
+                  </span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--ink-600)' }}>
+                    Cierre:{' '}
+                    {new Date(activeBeca.fechaCierre).toLocaleDateString('es-CO', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>

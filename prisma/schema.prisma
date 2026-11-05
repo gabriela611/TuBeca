@@ -46,6 +46,7 @@ model Beca {
   edadMinima            Int?      @map("edad_minima")
   edadMaxima            Int?      @map("edad_maxima")
   promedioMinimo        Float?    @map("promedio_minimo")
+  puntajeSaber11Minimo  Int?      @map("puntaje_saber11_minimo")
   estratoSocioeconomico String?   @map("estrato_socioeconomico")
   poblacionObjetivo     String?   @map("poblacion_objetivo")
   requisitos            String?

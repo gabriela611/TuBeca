@@ -207,6 +207,7 @@
       "edad_minima": null,
       "edad_maxima": null,
       "promedio_minimo": null,
+      "puntaje_saber11_minimo": 300,
       "estrato_socioeconomico": "1 o 2",
       "poblacion_objetivo": null,
       "requisitos": "Residir en cualquiera de los 125 municipios de Antioquia por más de dos años. Presentar certificado de resultados académicos de grado décimo y resultados parciales de grado once. El estudiante y su núcleo familiar deben habitar en vivienda de estrato 1 o 2. Puntaje Saber 11 igual o superior a 300.",

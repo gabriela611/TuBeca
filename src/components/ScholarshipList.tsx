@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { Building2, Heart, AlertCircle, Clock } from 'lucide-react';
+import { Building2, Heart, AlertCircle, Clock, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
 import { parseCoveragePercentage } from '@/lib/coverage';
 import { diasRestantes } from '@/lib/countdown';
+import { evaluarElegibilidad, type PerfilUsuario } from '@/lib/eligibility';
 
 export { parseCoveragePercentage };
 
@@ -67,6 +68,7 @@ interface ScholarshipListProps {
   onToggleFavorite: (id: string, e: React.MouseEvent) => void;
   showingFavoritesOnly?: boolean;
   onClearFavoritesFilter?: () => void;
+  perfil?: PerfilUsuario;
 }
 
 
@@ -156,6 +158,7 @@ export function ScholarshipList({
   onToggleFavorite,
   showingFavoritesOnly,
   onClearFavoritesFilter,
+  perfil,
 }: ScholarshipListProps) {
   if (isLoading) {
     return (
@@ -406,6 +409,56 @@ export function ScholarshipList({
             >
               {scholarshipTitle}
             </h3>
+
+            {/* Eligibility badge */}
+            {(() => {
+              const elegibilidad = evaluarElegibilidad(beca, perfil);
+              return (
+                <div>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '0.6875rem',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: 'var(--radius-full)',
+                      backgroundColor:
+                        elegibilidad.estado === 'cumples'
+                          ? '#f0fdf4'
+                          : elegibilidad.estado === 'no_cumples'
+                            ? '#fef2f2'
+                            : 'var(--surface-subtle)',
+                      color:
+                        elegibilidad.estado === 'cumples'
+                          ? '#15803d'
+                          : elegibilidad.estado === 'no_cumples'
+                            ? '#b91c1c'
+                            : 'var(--ink-500)',
+                      border: `1px solid ${
+                        elegibilidad.estado === 'cumples'
+                          ? '#bbf7d0'
+                          : elegibilidad.estado === 'no_cumples'
+                            ? '#fecaca'
+                            : 'var(--border-subtle)'
+                      }`,
+                    }}
+                  >
+                    {elegibilidad.estado === 'cumples' && <CheckCircle2 size={11} strokeWidth={2.4} />}
+                    {elegibilidad.estado === 'no_cumples' && <XCircle size={11} strokeWidth={2.4} />}
+                    {elegibilidad.estado === 'faltan_datos' && <HelpCircle size={11} strokeWidth={2.4} />}
+                    <span>
+                      {elegibilidad.estado === 'cumples'
+                        ? 'Cumples'
+                        : elegibilidad.estado === 'no_cumples'
+                          ? `No cumples: ${elegibilidad.motivo}`
+                          : 'Faltan datos'}
+                    </span>
+                  </span>
+                </div>
+              );
+            })()}
 
             {/* Bottom Row: Animated Coverage Ring Badge + plain "Cobertura" text + Countdown */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px', gap: '8px' }}>

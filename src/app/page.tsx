@@ -11,6 +11,7 @@ import { OnboardingModal } from '@/components/OnboardingModal';
 import { triggerSaveConfetti } from '@/lib/confetti';
 import { normalizeText } from '@/lib/normalize';
 import { sortBecas } from '@/lib/sort';
+import { type PerfilUsuario } from '@/lib/eligibility';
 import { Heart } from 'lucide-react';
 
 interface DeckAction {
@@ -42,6 +43,9 @@ export default function Home() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [orden, setOrden] = useState<string>('cierra_pronto');
 
+  // Elegibilidad user profile
+  const [perfil, setPerfil] = useState<PerfilUsuario>({});
+
   const [filters, setFilters] = useState<FilterState>({
     tipo: '',
     cobertura: '',
@@ -65,10 +69,24 @@ export default function Home() {
         if (!onboardingDone) {
           setIsOnboardingOpen(true);
         }
+
+        const savedPerfil = localStorage.getItem('tubeca_perfil');
+        if (savedPerfil) {
+          setPerfil(JSON.parse(savedPerfil));
+        }
       } catch (e) {
         console.warn('Could not read localStorage:', e);
       }
     });
+  }, []);
+
+  const handlePerfilChange = useCallback((nuevoPerfil: PerfilUsuario) => {
+    setPerfil(nuevoPerfil);
+    try {
+      localStorage.setItem('tubeca_perfil', JSON.stringify(nuevoPerfil));
+    } catch (e) {
+      console.warn('Could not save tubeca_perfil to localStorage:', e);
+    }
   }, []);
 
   // Fetch initial scholarships from API
@@ -437,6 +455,8 @@ export default function Home() {
             categorias={categorias}
             orden={orden}
             onOrdenChange={handleOrdenChange}
+            perfil={perfil}
+            onPerfilChange={handlePerfilChange}
           />
         </div>
 
@@ -525,6 +545,7 @@ export default function Home() {
                   onToggleFavorite={handleToggleFavorite}
                   showingFavoritesOnly={true}
                   onClearFavoritesFilter={() => setShowingFavorites(false)}
+                  perfil={perfil}
                 />
               </section>
             ) : (
@@ -548,6 +569,7 @@ export default function Home() {
                   loadError={loadError}
                   onRetry={handleRetry}
                   onResetFilters={handleResetFilters}
+                  perfil={perfil}
                 />
               </section>
             )}
@@ -557,6 +579,7 @@ export default function Home() {
               beca={activeDetailBeca}
               isFavorite={activeDetailBeca ? favorites.has(activeDetailBeca.id) : false}
               onToggleFavorite={handleToggleFavorite}
+              perfil={perfil}
             />
           </main>
         ) : (
@@ -614,6 +637,8 @@ export default function Home() {
               onCloseMobile={() => setIsMobileFilterOpen(false)}
               orden={orden}
               onOrdenChange={handleOrdenChange}
+              perfil={perfil}
+              onPerfilChange={handlePerfilChange}
             />
           </div>
         </div>

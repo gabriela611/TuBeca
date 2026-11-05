@@ -4,6 +4,18 @@ import * as path from 'path';
 
 const prisma = new PrismaClient();
 
+async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err: unknown) {
+      if (i === retries - 1) throw err;
+      await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+  throw new Error('Unreachable');
+}
+
 interface BecaRaw {
   id_beca: string;
   universidad: string;
@@ -20,6 +32,7 @@ interface BecaRaw {
   edad_minima: number | null;
   edad_maxima: number | null;
   promedio_minimo: number | null;
+  puntaje_saber11_minimo?: number | null;
   estrato_socioeconomico: string | null;
   poblacion_objetivo: string | null;
   requisitos: string | null;
@@ -276,86 +289,92 @@ async function main() {
     const fechaAperturaDate = b.fecha_apertura ? new Date(b.fecha_apertura) : null;
     const fechaCierreDate = b.fecha_cierre ? new Date(b.fecha_cierre) : null;
 
-    await prisma.beca.upsert({
-      where: { idBeca: b.id_beca },
-      update: {
-        universidad: b.universidad,
-        universidadId: uniId,
-        municipioAplicacion: b.municipio_aplicacion,
-        nombreBeca: b.nombre_beca,
-        nivelAcademico: b.nivel_academico,
-        areaConocimiento: b.area_conocimiento,
-        modalidad: b.modalidad,
-        descripcion: b.descripcion,
-        tipoFinanciacion: b.tipo_financiacion,
-        porcentaje: b.porcentaje,
-        valorBecaCop: b.valor_beca_cop,
-        cobertura: b.cobertura,
-        edadMinima: b.edad_minima,
-        edadMaxima: b.edad_maxima,
-        promedioMinimo: b.promedio_minimo,
-        estratoSocioeconomico: b.estrato_socioeconomico,
-        poblacionObjetivo: b.poblacion_objetivo,
-        requisitos: b.requisitos,
-        documentosRequeridos: b.documentos_requeridos,
-        fechaApertura: fechaAperturaDate,
-        fechaCierre: fechaCierreDate,
-        estadoConvocatoria: b.estado_convocatoria,
-        enlaceOficial: b.enlace_oficial,
-        fechaActualizacion: b.fecha_actualizacion ? new Date(b.fecha_actualizacion) : null,
-        estadoCalidadDato: b.estado_calidad_dato,
-        observaciones: b.observaciones,
-      },
-      create: {
-        id: b.id_beca,
-        idBeca: b.id_beca,
-        universidad: b.universidad,
-        universidadId: uniId,
-        municipioAplicacion: b.municipio_aplicacion,
-        nombreBeca: b.nombre_beca,
-        nivelAcademico: b.nivel_academico,
-        areaConocimiento: b.area_conocimiento,
-        modalidad: b.modalidad,
-        descripcion: b.descripcion,
-        tipoFinanciacion: b.tipo_financiacion,
-        porcentaje: b.porcentaje,
-        valorBecaCop: b.valor_beca_cop,
-        cobertura: b.cobertura,
-        edadMinima: b.edad_minima,
-        edadMaxima: b.edad_maxima,
-        promedioMinimo: b.promedio_minimo,
-        estratoSocioeconomico: b.estrato_socioeconomico,
-        poblacionObjetivo: b.poblacion_objetivo,
-        requisitos: b.requisitos,
-        documentosRequeridos: b.documentos_requeridos,
-        fechaApertura: fechaAperturaDate,
-        fechaCierre: fechaCierreDate,
-        estadoConvocatoria: b.estado_convocatoria,
-        enlaceOficial: b.enlace_oficial,
-        fechaActualizacion: b.fecha_actualizacion ? new Date(b.fecha_actualizacion) : null,
-        estadoCalidadDato: b.estado_calidad_dato,
-        observaciones: b.observaciones,
-      },
-    });
+    await withRetry(() =>
+      prisma.beca.upsert({
+        where: { idBeca: b.id_beca },
+        update: {
+          universidad: b.universidad,
+          universidadId: uniId,
+          municipioAplicacion: b.municipio_aplicacion,
+          nombreBeca: b.nombre_beca,
+          nivelAcademico: b.nivel_academico,
+          areaConocimiento: b.area_conocimiento,
+          modalidad: b.modalidad,
+          descripcion: b.descripcion,
+          tipoFinanciacion: b.tipo_financiacion,
+          porcentaje: b.porcentaje,
+          valorBecaCop: b.valor_beca_cop,
+          cobertura: b.cobertura,
+          edadMinima: b.edad_minima,
+          edadMaxima: b.edad_maxima,
+          promedioMinimo: b.promedio_minimo,
+          puntajeSaber11Minimo: b.puntaje_saber11_minimo ?? null,
+          estratoSocioeconomico: b.estrato_socioeconomico,
+          poblacionObjetivo: b.poblacion_objetivo,
+          requisitos: b.requisitos,
+          documentosRequeridos: b.documentos_requeridos,
+          fechaApertura: fechaAperturaDate,
+          fechaCierre: fechaCierreDate,
+          estadoConvocatoria: b.estado_convocatoria,
+          enlaceOficial: b.enlace_oficial,
+          fechaActualizacion: b.fecha_actualizacion ? new Date(b.fecha_actualizacion) : null,
+          estadoCalidadDato: b.estado_calidad_dato,
+          observaciones: b.observaciones,
+        },
+        create: {
+          id: b.id_beca,
+          idBeca: b.id_beca,
+          universidad: b.universidad,
+          universidadId: uniId,
+          municipioAplicacion: b.municipio_aplicacion,
+          nombreBeca: b.nombre_beca,
+          nivelAcademico: b.nivel_academico,
+          areaConocimiento: b.area_conocimiento,
+          modalidad: b.modalidad,
+          descripcion: b.descripcion,
+          tipoFinanciacion: b.tipo_financiacion,
+          porcentaje: b.porcentaje,
+          valorBecaCop: b.valor_beca_cop,
+          cobertura: b.cobertura,
+          edadMinima: b.edad_minima,
+          edadMaxima: b.edad_maxima,
+          promedioMinimo: b.promedio_minimo,
+          puntajeSaber11Minimo: b.puntaje_saber11_minimo ?? null,
+          estratoSocioeconomico: b.estrato_socioeconomico,
+          poblacionObjetivo: b.poblacion_objetivo,
+          requisitos: b.requisitos,
+          documentosRequeridos: b.documentos_requeridos,
+          fechaApertura: fechaAperturaDate,
+          fechaCierre: fechaCierreDate,
+          estadoConvocatoria: b.estado_convocatoria,
+          enlaceOficial: b.enlace_oficial,
+          fechaActualizacion: b.fecha_actualizacion ? new Date(b.fecha_actualizacion) : null,
+          estadoCalidadDato: b.estado_calidad_dato,
+          observaciones: b.observaciones,
+        },
+      }),
+    );
 
     // Conectar categorías
     const cats = getCategoriesForBeca(b);
     for (const catName of cats) {
       const catId = catMap.get(catName);
       if (catId) {
-        await prisma.becaCategoria.upsert({
-          where: {
-            becaId_categoriaId: {
+        await withRetry(() =>
+          prisma.becaCategoria.upsert({
+            where: {
+              becaId_categoriaId: {
+                becaId: b.id_beca,
+                categoriaId: catId,
+              },
+            },
+            update: {},
+            create: {
               becaId: b.id_beca,
               categoriaId: catId,
             },
-          },
-          update: {},
-          create: {
-            becaId: b.id_beca,
-            categoriaId: catId,
-          },
-        });
+          }),
+        );
       }
     }
   }

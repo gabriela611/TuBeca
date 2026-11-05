@@ -13,20 +13,26 @@ import {
   Users,
   FileText,
   Clock,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
 } from 'lucide-react';
 import { type BecaItem, parseCoveragePercentage } from './ScholarshipList';
 import { diasRestantes } from '@/lib/countdown';
+import { evaluarElegibilidad, type PerfilUsuario } from '@/lib/eligibility';
 
 interface ScholarshipDetailProps {
   beca: BecaItem | null;
   isFavorite: boolean;
   onToggleFavorite: (id: string, e: React.MouseEvent) => void;
+  perfil?: PerfilUsuario;
 }
 
 export function ScholarshipDetail({
   beca,
   isFavorite,
   onToggleFavorite,
+  perfil,
 }: ScholarshipDetailProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -387,6 +393,55 @@ export function ScholarshipDetail({
           </div>
         )}
       </div>
+
+      {/* Verificador de Elegibilidad */}
+      {(() => {
+        const eleg = evaluarElegibilidad(beca, perfil);
+        const esCumple = eleg.estado === 'cumples';
+        const esNoCumple = eleg.estado === 'no_cumples';
+
+        return (
+          <div
+            style={{
+              padding: '16px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: esCumple ? '#f0fdf4' : esNoCumple ? '#fef2f2' : 'var(--surface-subtle)',
+              border: `1.5px solid ${esCumple ? '#bbf7d0' : esNoCumple ? '#fecaca' : 'var(--border-subtle)'}`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {esCumple && <CheckCircle2 size={18} style={{ color: '#16a34a' }} />}
+                {esNoCumple && <XCircle size={18} style={{ color: '#dc2626' }} />}
+                {!esCumple && !esNoCumple && <HelpCircle size={18} style={{ color: 'var(--ink-500)' }} />}
+                <strong style={{ fontSize: '0.875rem', color: esCumple ? '#15803d' : esNoCumple ? '#b91c1c' : 'var(--ink-800)' }}>
+                  {esCumple
+                    ? 'Cumples con los requisitos de esta convocatoria'
+                    : esNoCumple
+                      ? `No cumples: ${eleg.motivo}`
+                      : 'Completa tu perfil en "¿A cuáles aplico?"'}
+                </strong>
+              </div>
+            </div>
+
+            {eleg.detalles.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingTop: '4px' }}>
+                {eleg.detalles.map((d, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--ink-700)' }}>
+                    <span style={{ color: d.cumple === true ? '#16a34a' : d.cumple === false ? '#dc2626' : 'var(--ink-400)', fontWeight: 700 }}>
+                      {d.cumple === true ? '✓' : d.cumple === false ? '✕' : '•'}
+                    </span>
+                    <span>{d.mensaje}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Población objetivo si aplica */}
       {beca.poblacionObjetivo && (

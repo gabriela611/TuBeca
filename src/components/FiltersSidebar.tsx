@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Filter, RotateCcw, Check, X } from 'lucide-react';
+import { Filter, RotateCcw, Check, X, GraduationCap } from 'lucide-react';
+import { type PerfilUsuario } from '@/lib/eligibility';
 
 export interface FilterState {
   tipo: string;
@@ -25,6 +26,8 @@ interface FiltersSidebarProps {
   onCloseMobile?: () => void;
   orden?: string;
   onOrdenChange?: (orden: string) => void;
+  perfil?: PerfilUsuario;
+  onPerfilChange?: (perfil: PerfilUsuario) => void;
 }
 
 export function FiltersSidebar({
@@ -39,6 +42,8 @@ export function FiltersSidebar({
   onCloseMobile,
   orden = 'cierra_pronto',
   onOrdenChange,
+  perfil = {},
+  onPerfilChange,
 }: FiltersSidebarProps) {
   const activeCity = filters.ciudad || filters.departamento || '';
   const hasActiveFilters =
@@ -198,6 +203,159 @@ export function FiltersSidebar({
           <option value="mayor_cobertura">Mayor cobertura</option>
           <option value="recientes">Recientes</option>
         </select>
+      </section>
+
+      {/* ¿A cuáles aplico? (Verificador de elegibilidad) */}
+      <section
+        style={{
+          padding: '12px 14px',
+          backgroundColor: 'var(--brand-50, #eff6ff)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--brand-200, #bfdbfe)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <GraduationCap size={16} style={{ color: 'var(--brand-700)' }} />
+            <h3 style={{ fontSize: '0.8125rem', fontWeight: 800, color: 'var(--brand-900)' }}>
+              ¿A cuáles aplico?
+            </h3>
+          </div>
+          {(perfil.saber11 !== undefined || perfil.promedio !== undefined || perfil.estrato !== undefined || perfil.edad !== undefined) && (
+            <button
+              onClick={() => onPerfilChange?.({})}
+              title="Borrar datos de perfil"
+              style={{
+                fontSize: '0.6875rem',
+                color: 'var(--ink-500)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+              }}
+            >
+              Borrar
+            </button>
+          )}
+        </div>
+
+        <p style={{ fontSize: '0.6875rem', color: 'var(--ink-600)', lineHeight: 1.35 }}>
+          Ingresa tus datos para ver automáticamente si cumples los requisitos de cada beca.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '2px' }}>
+          <div>
+            <label style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--ink-700)', display: 'block', marginBottom: '2px' }}>
+              Saber 11
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={500}
+              placeholder="0-500"
+              value={perfil.saber11 ?? ''}
+              onChange={(e) => {
+                const val = e.target.value === '' ? null : Math.min(500, Math.max(0, parseInt(e.target.value, 10)));
+                onPerfilChange?.({ ...perfil, saber11: val });
+              }}
+              style={{
+                width: '100%',
+                padding: '5px 8px',
+                fontSize: '0.75rem',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-subtle)',
+                backgroundColor: '#ffffff',
+                color: 'var(--ink-900)',
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--ink-700)', display: 'block', marginBottom: '2px' }}>
+              Promedio
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={5}
+              step={0.1}
+              placeholder="0.0-5.0"
+              value={perfil.promedio ?? ''}
+              onChange={(e) => {
+                const val = e.target.value === '' ? null : Math.min(5, Math.max(0, parseFloat(e.target.value)));
+                onPerfilChange?.({ ...perfil, promedio: val });
+              }}
+              style={{
+                width: '100%',
+                padding: '5px 8px',
+                fontSize: '0.75rem',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-subtle)',
+                backgroundColor: '#ffffff',
+                color: 'var(--ink-900)',
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--ink-700)', display: 'block', marginBottom: '2px' }}>
+              Estrato
+            </label>
+            <select
+              value={perfil.estrato ?? ''}
+              onChange={(e) => {
+                const val = e.target.value === '' ? null : parseInt(e.target.value, 10);
+                onPerfilChange?.({ ...perfil, estrato: val });
+              }}
+              style={{
+                width: '100%',
+                padding: '5px 6px',
+                fontSize: '0.75rem',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-subtle)',
+                backgroundColor: '#ffffff',
+                color: 'var(--ink-900)',
+              }}
+            >
+              <option value="">Todos</option>
+              <option value="1">Estrato 1</option>
+              <option value="2">Estrato 2</option>
+              <option value="3">Estrato 3</option>
+              <option value="4">Estrato 4</option>
+              <option value="5">Estrato 5</option>
+              <option value="6">Estrato 6</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--ink-700)', display: 'block', marginBottom: '2px' }}>
+              Edad
+            </label>
+            <input
+              type="number"
+              min={10}
+              max={99}
+              placeholder="Años"
+              value={perfil.edad ?? ''}
+              onChange={(e) => {
+                const val = e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10));
+                onPerfilChange?.({ ...perfil, edad: val });
+              }}
+              style={{
+                width: '100%',
+                padding: '5px 8px',
+                fontSize: '0.75rem',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-subtle)',
+                backgroundColor: '#ffffff',
+                color: 'var(--ink-900)',
+              }}
+            />
+          </div>
+        </div>
       </section>
 
       {/* 1. Nivel de estudio */}
