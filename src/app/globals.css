@@ -220,6 +220,53 @@ textarea {
   display: flex;
 }
 
+/* =========================================================
+   Colombia Map Layout (Desktop 2-Col Split, Mobile Stacked)
+   ========================================================= */
+
+.tubeca-map-wrapper {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--surface-base);
+}
+
+.tubeca-map-canvas-container {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justifyContent: flex-start;
+  overflow-y: auto;
+  border-right: 1px solid var(--border-subtle);
+  background-color: #ffffff;
+}
+
+.tubeca-map-sidebar {
+  width: 380px;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--surface-base);
+  border-left: 1px solid var(--border-subtle);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.tubeca-map-chips-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile Bottom Navigation Bar (Hidden on Desktop) */
+.tubeca-mobile-bottom-nav {
+  display: none;
+}
+
 /* Mobile Viewport Adaptation (< 1024px) */
 @media (max-width: 1023px) {
   html,
@@ -228,6 +275,105 @@ textarea {
     max-height: none !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+  }
+
+  body {
+    padding-bottom: 68px !important;
+  }
+
+  .tubeca-mobile-bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background-color: #ffffff;
+    border-top: 1px solid var(--border-subtle);
+    align-items: center;
+    justify-content: space-around;
+    z-index: 95;
+    padding: 0 4px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -3px 12px rgba(15, 23, 42, 0.08);
+  }
+
+  .tubeca-mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    height: 100%;
+    min-height: 48px;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-500);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    position: relative;
+    padding: 4px 0;
+    transition: color 0.15s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tubeca-mobile-nav-item.is-active {
+    color: var(--brand-700);
+    font-weight: 700;
+  }
+
+  .tubeca-mobile-nav-badge {
+    position: absolute;
+    top: 4px;
+    right: 50%;
+    transform: translateX(14px);
+    background-color: var(--brand-700);
+    color: #ffffff;
+    font-size: 0.625rem;
+    font-weight: 800;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 1.5px solid #ffffff;
+  }
+
+  .tubeca-map-main {
+    height: auto !important;
+    min-height: calc(100vh - 122px) !important;
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+  }
+
+  .tubeca-map-wrapper {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+  }
+
+  .tubeca-map-canvas-container {
+    width: 100% !important;
+    height: auto !important;
+    padding: 16px 12px 20px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    overflow: visible !important;
+  }
+
+  .tubeca-map-sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    border-left: none !important;
+    overflow: visible !important;
   }
 
   .tubeca-header {

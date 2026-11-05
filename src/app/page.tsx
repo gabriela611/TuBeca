@@ -805,7 +805,17 @@ export default function Home() {
             />
           </main>
         ) : (
-          <main style={{ display: 'flex', flex: 1, minHeight: 0, height: '100%', overflow: 'hidden', background: 'var(--surface-base-gradient)' }}>
+          <main
+            className="tubeca-map-main"
+            style={{
+              display: 'flex',
+              flex: 1,
+              minHeight: 0,
+              height: '100%',
+              overflow: 'hidden',
+              background: 'var(--surface-base-gradient)',
+            }}
+          >
             <ColombiaMap
               selectedDepartamento={filters.ciudad || filters.departamento}
               onSelectDepartamento={(city) => {

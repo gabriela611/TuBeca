@@ -371,6 +371,82 @@ export function Header({
           </button>
         </div>
       </div>
+
+      {/* Mobile Bottom Navigation Bar (Persistent touch-friendly tabs on screens < 1024px) */}
+      <nav className="tubeca-mobile-bottom-nav" aria-label="Navegación principal móvil">
+        {/* Tab 1: Explorar / Swipe */}
+        <button
+          type="button"
+          onClick={() => {
+            if (showingFavorites) onToggleShowingFavorites();
+            onViewChange('split');
+          }}
+          className={`tubeca-mobile-nav-item ${activeView === 'split' && !showingFavorites ? 'is-active' : ''}`}
+          aria-label="Explorar becas en formato baraja"
+        >
+          <Columns size={19} />
+          <span>Explorar</span>
+        </button>
+
+        {/* Tab 2: Mapa */}
+        <button
+          type="button"
+          onClick={() => {
+            if (showingFavorites) onToggleShowingFavorites();
+            onViewChange('map');
+          }}
+          className={`tubeca-mobile-nav-item ${activeView === 'map' ? 'is-active' : ''}`}
+          aria-label="Ver mapa universitario de Colombia"
+        >
+          <MapPin size={19} />
+          <span>Mapa</span>
+        </button>
+
+        {/* Tab 3: Filtros */}
+        <button
+          type="button"
+          onClick={onOpenMobileFilters}
+          className="tubeca-mobile-nav-item"
+          aria-label="Abrir filtros de búsqueda"
+        >
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Filter size={19} />
+            {activeFiltersCount > 0 && (
+              <span className="tubeca-mobile-nav-badge">{activeFiltersCount}</span>
+            )}
+          </div>
+          <span>Filtros</span>
+        </button>
+
+        {/* Tab 4: Test */}
+        <button
+          type="button"
+          onClick={onOpenOnboarding}
+          className="tubeca-mobile-nav-item"
+          aria-label="Abrir test vocacional de preguntas"
+        >
+          <Compass size={19} />
+          <span>Test</span>
+        </button>
+
+        {/* Tab 5: Guardadas */}
+        <button
+          type="button"
+          onClick={onToggleShowingFavorites}
+          className={`tubeca-mobile-nav-item ${showingFavorites ? 'is-active' : ''}`}
+          aria-label={`Ver becas guardadas (${favoritesCount})`}
+        >
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Heart size={19} fill={showingFavorites ? 'currentColor' : 'none'} />
+            {favoritesCount > 0 && (
+              <span className="tubeca-mobile-nav-badge" style={{ backgroundColor: 'var(--accent-600)' }}>
+                {favoritesCount}
+              </span>
+            )}
+          </div>
+          <span>Guardadas</span>
+        </button>
+      </nav>
     </header>
   );
 }
