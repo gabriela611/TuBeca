@@ -190,6 +190,10 @@ textarea {
   display: flex;
 }
 
+.tubeca-mobile-bottom-nav {
+  display: none;
+}
+
 /* Mobile Viewport Adaptation (< 1024px) */
 @media (max-width: 1023px) {
   html,
@@ -198,6 +202,93 @@ textarea {
     max-height: none !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+    padding-bottom: 64px !important;
+  }
+
+  .tubeca-mobile-bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid var(--border-subtle);
+    z-index: 50;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 4px;
+    box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.05);
+  }
+
+  .tubeca-mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    height: 100%;
+    min-height: 48px;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-500);
+    font-size: 0.65rem;
+    font-weight: 600;
+    position: relative;
+    padding: 4px 0;
+    transition: color 0.15s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tubeca-mobile-nav-item.is-active {
+    color: var(--brand-700);
+    font-weight: 700;
+  }
+
+  .tubeca-mobile-nav-badge {
+    position: absolute;
+    top: 4px;
+    right: 50%;
+    transform: translateX(14px);
+    background-color: var(--brand-700);
+    color: #ffffff;
+    font-size: 0.625rem;
+    font-weight: 800;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 1.5px solid #ffffff;
+  }
+
+  .tubeca-map-wrapper {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: calc(100vh - 120px) !important;
+    overflow-y: visible !important;
+  }
+
+  .tubeca-map-canvas-container {
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 16px 12px !important;
+  }
+
+  .tubeca-map-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    padding: 16px 14px 80px 14px !important;
+    overflow-y: visible !important;
   }
 
   .tubeca-header {
@@ -210,6 +301,10 @@ textarea {
   }
 
   .tubeca-header-quiz-btn {
+    display: none !important;
+  }
+
+  .tubeca-header-tour-btn {
     display: none !important;
   }
 
@@ -230,6 +325,24 @@ textarea {
 
   .tubeca-fav-label {
     display: none !important;
+  }
+
+  .tubeca-auth-label {
+    display: none !important;
+  }
+
+  .tubeca-auth-btn {
+    padding: 7px 10px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    justify-content: center !important;
+  }
+
+  .tubeca-fav-btn {
+    padding: 7px 10px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    justify-content: center !important;
   }
 
   .tubeca-desktop-sidebar {

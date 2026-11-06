@@ -8,6 +8,7 @@ import { ScholarshipList, type BecaItem, parseCoveragePercentage } from '@/compo
 import { ScholarshipDetail } from '@/components/ScholarshipDetail';
 import { ColombiaMap } from '@/components/ColombiaMap';
 import { OnboardingModal } from '@/components/OnboardingModal';
+import { AppCoachingOverlay } from '@/components/AppCoachingOverlay';
 import { ScholarshipComparator } from '@/components/ScholarshipComparator';
 import { AuthModal } from '@/components/AuthModal';
 import { getSupabaseClient } from '@/lib/supabase/client';
@@ -42,8 +43,9 @@ export default function Home() {
   const [showingFavorites, setShowingFavorites] = useState(false);
   const [selectedSavedBecaId, setSelectedSavedBecaId] = useState<string | null>(null);
 
-  // Onboarding state
+  // Onboarding & Guided Tour state
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isIntroTourOpen, setIsIntroTourOpen] = useState(false);
   const [orden, setOrden] = useState<string>('cierra_pronto');
 
   // Elegibilidad user profile
@@ -81,8 +83,13 @@ export default function Home() {
           setFavorites(new Set(JSON.parse(savedFavs)));
         }
 
+        const introSeen = localStorage.getItem('tubeca_intro_seen');
+        if (!introSeen) {
+          setIsIntroTourOpen(true);
+        }
+
         const onboardingDone = localStorage.getItem('tubeca_onboarding_done');
-        if (!onboardingDone) {
+        if (!onboardingDone && introSeen) {
           setIsOnboardingOpen(true);
         }
 
@@ -656,6 +663,7 @@ export default function Home() {
         totalBecas={allBecas.length}
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenTour={() => setIsIntroTourOpen(true)}
       />
 
       {/* Main Workspace (3 columns on desktop, vertical flow on mobile) */}
@@ -879,6 +887,14 @@ export default function Home() {
           }
         }}
         onApplyFilters={handleApplyOnboardingFilters}
+      />
+
+      {/* In-app Coaching Guided Tour with Arrows & Dotted Lines */}
+      <AppCoachingOverlay
+        isOpen={isIntroTourOpen}
+        onClose={() => setIsIntroTourOpen(false)}
+        activeView={activeView}
+        onNavigateView={(v) => setActiveView(v)}
       />
 
       {/* Comparator Floating Bottom Bar */}
