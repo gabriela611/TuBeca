@@ -1,18 +1,20 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
-  Filter,
   Layers,
   CheckCircle2,
   MapPin,
-  Heart,
+  Scale,
   User,
+  Heart,
+  X,
   ChevronRight,
   ChevronLeft,
-  X,
   Sparkles,
+  HelpCircle,
+  GraduationCap,
 } from 'lucide-react';
 import { triggerSaveConfetti } from '@/lib/confetti';
 
@@ -23,788 +25,774 @@ export interface AppCoachingOverlayProps {
   onNavigateView?: (view: 'split' | 'map') => void;
 }
 
-interface StepConfig {
+interface TourStep {
   id: string;
-  title: string;
   badge: string;
-  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
   description: string;
-  hint?: string;
-  desktopSelector: string;
-  mobileSelector: string;
-  preferredSide: 'bottom' | 'top' | 'right' | 'left';
-}
-
-const STEPS: StepConfig[] = [
-  {
-    id: 'search',
-    title: 'Buscador inteligente',
-    badge: 'Paso 1 de 7 · Búsqueda',
-    icon: <Search size={16} />,
-    description:
-      'Escribe tu carrera (ej. Medicina, Sistemas), una universidad o tu ciudad para filtrar convocatorias al instante.',
-    hint: 'Consejo: Puedes buscar por palabras clave como "Mérito", "Indígena" o "Deportiva".',
-    desktopSelector: '.tubeca-header-search',
-    mobileSelector: '.tubeca-header-search',
-    preferredSide: 'bottom',
-  },
-  {
-    id: 'filters',
-    title: 'Filtros a tu medida',
-    badge: 'Paso 2 de 7 · Filtros',
-    icon: <Filter size={16} />,
-    description:
-      'Segmenta becas por nivel académico (pregrado o posgrado), cobertura (100% total o parcial), ciudad y tipo de universidad.',
-    hint: 'Aplica uno o varios filtros para encontrar tu convocatoria ideal en segundos.',
-    desktopSelector: '.tubeca-desktop-sidebar',
-    mobileSelector: '.tubeca-header-mobile-filters',
-    preferredSide: 'right',
-  },
-  {
-    id: 'swipe',
-    title: 'Modo Swipe de Becas',
-    badge: 'Paso 3 de 7 · Exploración',
-    icon: <Layers size={16} />,
-    description:
-      'Explora las becas una a una en tarjetas dinámicas. Desliza a la derecha o pulsa ❤️ para guardar; desliza a la izquierda para descartar.',
-    hint: '¡Usa las flechas ← y → de tu teclado en el computador para explorar rápido!',
-    desktopSelector: '.tubeca-center-stage',
-    mobileSelector: '.tubeca-center-stage',
-    preferredSide: 'right',
-  },
-  {
-    id: 'requirements',
-    title: 'Verificador "¿Aplico?"',
-    badge: 'Paso 4 de 7 · Elegibilidad',
-    icon: <CheckCircle2 size={16} />,
-    description:
-      'Compara tus resultados del Saber 11 y promedio con los requisitos mínimos de la beca, revisa el checklist de documentos y postúlate.',
-    hint: 'Configura tus notas en el panel para ver si cumples al 100% los requisitos.',
-    desktopSelector: '.tubeca-detail-container',
-    mobileSelector: '.tubeca-detail-container',
-    preferredSide: 'left',
-  },
-  {
-    id: 'map',
-    title: 'Mapa Universitario de Colombia',
-    badge: 'Paso 5 de 7 · Territorio',
-    icon: <MapPin size={16} />,
-    description:
-      'Cambia a la vista de mapa para explorar cuántas becas y universidades aliadas existen en tu departamento o región del país.',
-    hint: 'Haz clic en cualquier departamento en el mapa para ver sus convocatorias.',
-    desktopSelector: '.tubeca-header-view-toggle',
-    mobileSelector: '.tubeca-nav-map',
-    preferredSide: 'bottom',
-  },
-  {
-    id: 'saved',
-    title: 'Tus Guardadas y Comparador',
-    badge: 'Paso 6 de 7 · Comparación',
-    icon: <Heart size={16} />,
-    description:
-      'Tus becas favoritas quedan guardadas aquí para revisarlas cuando quieras. Además, puedes seleccionar hasta 3 becas y compararlas cara a cara.',
-    hint: 'Al guardar una beca, no perderás sus fechas límite ni requisitos.',
-    desktopSelector: '.tubeca-fav-btn',
-    mobileSelector: '.tubeca-nav-saved',
-    preferredSide: 'bottom',
-  },
-  {
-    id: 'account',
-    title: 'Tu Cuenta y Alertas de Cierre',
-    badge: 'Paso 7 de 7 · Tu Cuenta',
-    icon: <User size={16} />,
-    description:
-      'Inicia sesión con tu correo (sin contraseñas). Guarda tus convocatorias favoritas en la nube y recibe recordatorios antes de que cierren las fechas de postulación.',
-    hint: '¡Tu sesión sincroniza tus becas guardadas en tu celular y en tu computador!',
-    desktopSelector: '.tubeca-auth-btn',
-    mobileSelector: '.tubeca-nav-account',
-    preferredSide: 'bottom',
-  },
-];
-
-interface ElementRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
+  tip: string;
+  icon: React.ReactNode;
+  renderPreview: () => React.ReactNode;
 }
 
 export function AppCoachingOverlay({
-  isOpen,
+  isOpen: controlledIsOpen,
   onClose,
   activeView,
   onNavigateView,
 }: AppCoachingOverlayProps) {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [targetRect, setTargetRect] = useState<ElementRect | null>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
 
-  const [cardPlacement, setCardPlacement] = useState<{
-    cardX: number;
-    cardY: number;
-    arrowStart: { x: number; y: number };
-    arrowEnd: { x: number; y: number };
-    arrowControl: { x: number; y: number };
-  }>({
-    cardX: 16,
-    cardY: 80,
-    arrowStart: { x: 100, y: 100 },
-    arrowEnd: { x: 100, y: 100 },
-    arrowControl: { x: 100, y: 100 },
-  });
+  const isOpen = controlledIsOpen || internalIsOpen;
 
-  const step = STEPS[currentStepIndex] || STEPS[0];
-  const isLastStep = currentStepIndex === STEPS.length - 1;
-
-  // Measure target element position with strict responsive boundaries
-  const updateTargetMeasurements = useCallback(() => {
-    if (!isOpen) return;
-
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const isMobile = vw < 1024;
-
-    const selector = isMobile ? step.mobileSelector : step.desktopSelector;
-    let target = document.querySelector(selector) as HTMLElement | null;
-
-    // Fallbacks if specific selector not found
-    if (!target && isMobile) {
-      target = (document.querySelector(step.desktopSelector) ||
-        document.querySelector('.tubeca-mobile-bottom-nav')) as HTMLElement | null;
-    }
-    if (!target && step.id === 'saved') {
-      target = (document.querySelector('.tubeca-fav-btn') ||
-        document.querySelector('.tubeca-nav-saved') ||
-        document.querySelector('.tubeca-mobile-bottom-nav')) as HTMLElement | null;
-    }
-    if (!target && step.id === 'account') {
-      target = (document.querySelector('.tubeca-nav-account') ||
-        document.querySelector('.tubeca-auth-btn') ||
-        document.querySelector('.tubeca-mobile-bottom-nav')) as HTMLElement | null;
-    }
-    if (!target && step.id === 'map') {
-      target = (document.querySelector('.tubeca-header-view-toggle') ||
-        document.querySelector('.tubeca-nav-map')) as HTMLElement | null;
-    }
-
-    if (!target) {
-      // Safe center fallback
-      const cx = vw / 2;
-      const cy = vh / 2;
-      setTargetRect({
-        x: cx - 120,
-        y: cy - 40,
-        width: 240,
-        height: 80,
-        top: cy - 40,
-        bottom: cy + 40,
-        left: cx - 120,
-        right: cx + 120,
-      });
-      return;
-    }
-
-    const rect = target.getBoundingClientRect();
-    const margin = 8;
-    const clampedRect: ElementRect = {
-      x: Math.max(margin, rect.left - 6),
-      y: Math.max(margin, rect.top - 6),
-      width: Math.min(vw - margin * 2, rect.width + 12),
-      height: Math.min(vh - margin * 2, rect.height + 12),
-      top: Math.max(margin, rect.top - 6),
-      left: Math.max(margin, rect.left - 6),
-      right: Math.min(vw - margin, rect.right + 6),
-      bottom: Math.min(vh - margin, rect.bottom + 6),
-    };
-
-    setTargetRect(clampedRect);
-
-    // Measure card DOM element dynamically
-    const cardEl = cardRef.current;
-    const cardWidth = cardEl ? cardEl.offsetWidth : Math.min(360, vw - 32);
-    const cardHeight = cardEl ? cardEl.offsetHeight : 270;
-
-    // Margins from viewport edges
-    const topMargin = isMobile ? 74 : 20;
-    // On mobile, keep 82px margin from bottom to stay well clear of the mobile bottom navigation bar
-    const bottomMargin = isMobile ? 82 : 24;
-    const sideMargin = 16;
-
-    const targetCenter = {
-      x: clampedRect.left + clampedRect.width / 2,
-      y: clampedRect.top + clampedRect.height / 2,
-    };
-
-    let rawCx = sideMargin;
-    let rawCy = topMargin;
-
-    if (isMobile) {
-      // Mobile positioning logic
-      if (step.id === 'swipe' || clampedRect.height > vh * 0.45) {
-        // Large target (like swipe cards or whole detail section):
-        // Dock card comfortably near bottom above the bottom navigation bar
-        rawCy = vh - cardHeight - bottomMargin;
-        rawCx = Math.max(sideMargin, (vw - cardWidth) / 2);
-      } else if (targetCenter.y > vh / 2) {
-        // Target is lower on screen -> place card above target
-        rawCy = clampedRect.top - cardHeight - 16;
-        rawCx = Math.max(sideMargin, Math.min(vw - cardWidth - sideMargin, targetCenter.x - cardWidth / 2));
-      } else {
-        // Target is higher on screen -> place card below target
-        rawCy = clampedRect.bottom + 16;
-        rawCx = Math.max(sideMargin, Math.min(vw - cardWidth - sideMargin, targetCenter.x - cardWidth / 2));
-      }
-    } else {
-      // Desktop positioning logic
-      if (step.preferredSide === 'right') {
-        rawCx = clampedRect.right + 20;
-        rawCy = clampedRect.top + 20;
-        if (rawCx + cardWidth > vw - sideMargin) {
-          rawCx = Math.max(sideMargin, clampedRect.left - cardWidth - 20);
-        }
-      } else if (step.preferredSide === 'left') {
-        rawCx = clampedRect.left - cardWidth - 20;
-        rawCy = clampedRect.top + 20;
-        if (rawCx < sideMargin) {
-          rawCx = clampedRect.right + 20;
-        }
-      } else if (step.preferredSide === 'bottom') {
-        rawCx = Math.max(sideMargin, Math.min(vw - cardWidth - sideMargin, targetCenter.x - cardWidth / 2));
-        rawCy = clampedRect.bottom + 18;
-      } else {
-        rawCx = Math.max(sideMargin, Math.min(vw - cardWidth - sideMargin, targetCenter.x - cardWidth / 2));
-        rawCy = clampedRect.top - cardHeight - 18;
-      }
-    }
-
-    // STRICT MATHEMATICAL CLAMPING: Buttons can NEVER be pushed off-screen
-    const maxSafeY = Math.max(topMargin, vh - cardHeight - bottomMargin);
-    const safeCardY = Math.max(topMargin, Math.min(maxSafeY, rawCy));
-
-    const maxSafeX = Math.max(sideMargin, vw - cardWidth - sideMargin);
-    const safeCardX = Math.max(sideMargin, Math.min(maxSafeX, rawCx));
-
-    // Dynamic arrow calculation connecting safeCard to the target element
-    let startPoint = { x: safeCardX + cardWidth / 2, y: safeCardY };
-    let endPoint = { x: targetCenter.x, y: clampedRect.bottom + 4 };
-
-    if (safeCardY >= clampedRect.bottom - 12) {
-      // Card is below target -> Arrow points UP towards target bottom
-      startPoint = { x: safeCardX + cardWidth / 2, y: safeCardY };
-      endPoint = {
-        x: Math.max(clampedRect.left + 10, Math.min(clampedRect.right - 10, safeCardX + cardWidth / 2)),
-        y: clampedRect.bottom + 4,
-      };
-    } else if (safeCardY + cardHeight <= clampedRect.top + 12) {
-      // Card is above target -> Arrow points DOWN towards target top
-      startPoint = { x: safeCardX + cardWidth / 2, y: safeCardY + cardHeight };
-      endPoint = {
-        x: Math.max(clampedRect.left + 10, Math.min(clampedRect.right - 10, safeCardX + cardWidth / 2)),
-        y: clampedRect.top - 4,
-      };
-    } else if (safeCardX >= clampedRect.right - 12) {
-      // Card is to the right of target -> Arrow points LEFT towards target right edge
-      startPoint = { x: safeCardX, y: safeCardY + cardHeight / 2 };
-      endPoint = {
-        x: clampedRect.right + 4,
-        y: Math.max(clampedRect.top + 10, Math.min(clampedRect.bottom - 10, safeCardY + cardHeight / 2)),
-      };
-    } else {
-      // Card is to the left of target -> Arrow points RIGHT towards target left edge
-      startPoint = { x: safeCardX + cardWidth, y: safeCardY + cardHeight / 2 };
-      endPoint = {
-        x: clampedRect.left - 4,
-        y: Math.max(clampedRect.top + 10, Math.min(clampedRect.bottom - 10, safeCardY + cardHeight / 2)),
-      };
-    }
-
-    // Curved Bezier control point for clean trajectory
-    const midX = (startPoint.x + endPoint.x) / 2;
-    const midY = (startPoint.y + endPoint.y) / 2;
-    const dx = endPoint.x - startPoint.x;
-    const dy = endPoint.y - startPoint.y;
-    const ctrlPoint = {
-      x: midX - dy * 0.12,
-      y: midY + dx * 0.12,
-    };
-
-    setCardPlacement({
-      cardX: safeCardX,
-      cardY: safeCardY,
-      arrowStart: startPoint,
-      arrowEnd: endPoint,
-      arrowControl: ctrlPoint,
-    });
-  }, [isOpen, step]);
-
-  // Recalculate on open, step change, resize, scroll
-  useEffect(() => {
-    if (!isOpen) return;
-
-    updateTargetMeasurements();
-    const handleResize = () => updateTargetMeasurements();
-    const handleScroll = () => updateTargetMeasurements();
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleScroll, true);
-
-    const timer = setTimeout(updateTargetMeasurements, 60);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleScroll, true);
-      clearTimeout(timer);
-    };
-  }, [isOpen, currentStepIndex, activeView, onNavigateView, updateTargetMeasurements, step.id]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleSkip();
-      } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
-        e.preventDefault();
-        handleNext();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        handlePrev();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentStepIndex]);
-
-  const handleNext = () => {
-    if (isLastStep) {
-      handleComplete();
-    } else {
-      setCurrentStepIndex((prev) => prev + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex((prev) => prev - 1);
-    }
-  };
-
-  const handleComplete = () => {
-    try {
-      localStorage.setItem('tubeca_intro_seen', 'true');
-      localStorage.setItem('tubeca_tour_completed', 'true');
-    } catch {
-      // ignore
-    }
-    triggerSaveConfetti();
-    onClose();
-  };
-
-  const handleSkip = () => {
+  const handleClose = () => {
     try {
       localStorage.setItem('tubeca_intro_seen', 'true');
     } catch {
       // ignore
     }
+    setInternalIsOpen(false);
     onClose();
   };
 
-  if (!isOpen) return null;
+  const handleOpen = () => {
+    setCurrentStep(0);
+    setInternalIsOpen(true);
+  };
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Tutorial guiado interactivo de TuBeca"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        pointerEvents: 'auto',
-        overflow: 'hidden',
-      }}
-    >
-      {/* SVG Canvas for Backdrop Mask, Dashed Border, Dotted Lines & Arrow */}
-      <svg
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-        }}
-      >
-        <defs>
-          {/* Spotlight Mask: Cut out the target element so it stays fully illuminated underneath */}
-          <mask id="tubeca-spotlight-mask">
-            <rect x="0" y="0" width="100%" height="100%" fill="white" />
-            {targetRect && (
-              <rect
-                x={targetRect.x}
-                y={targetRect.y}
-                width={targetRect.width}
-                height={targetRect.height}
-                rx="14"
-                fill="black"
-              />
-            )}
-          </mask>
-
-          {/* Royal Blue Arrowhead Marker */}
-          <marker
-            id="tubeca-tour-arrowhead"
-            viewBox="0 0 12 12"
-            refX="10"
-            refY="6"
-            markerWidth="10"
-            markerHeight="10"
-            orient="auto-start-reverse"
-          >
-            <polygon points="0 1, 12 6, 0 11, 3 6" fill="#2563eb" stroke="#2563eb" strokeWidth="1" />
-          </marker>
-
-          {/* Subtle glow filter for the spotlight boundary */}
-          <filter id="tubeca-halo-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
-
-        {/* Semi-transparent scrim with target spotlight cut out */}
-        <rect
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          fill="rgba(15, 23, 42, 0.45)"
-          mask="url(#tubeca-spotlight-mask)"
-          style={{ transition: 'all 0.25s ease-out' }}
-        />
-
-        {/* Target Highlight: Glowing Dotted Royal Blue Border around highlighted button/area */}
-        {targetRect && (
-          <g>
-            {/* Outer soft halo */}
-            <rect
-              x={targetRect.x - 2}
-              y={targetRect.y - 2}
-              width={targetRect.width + 4}
-              height={targetRect.height + 4}
-              rx="14"
-              fill="none"
-              stroke="rgba(37, 99, 235, 0.28)"
-              strokeWidth="4"
-            />
-            {/* Dotted border with pulsing effect */}
-            <rect
-              x={targetRect.x}
-              y={targetRect.y}
-              width={targetRect.width}
-              height={targetRect.height}
-              rx="14"
-              fill="none"
-              stroke="#2563eb"
-              strokeWidth="2.8"
-              strokeDasharray="8 6"
-              filter="url(#tubeca-halo-glow)"
-            />
-          </g>
-        )}
-
-        {/* Dotted Line with Curved Arrow pointing from Card to Target */}
-        {targetRect && (
-          <g>
-            {/* White contrast under-stroke for sharp visibility on any background */}
-            <path
-              d={`M ${cardPlacement.arrowStart.x} ${cardPlacement.arrowStart.y} Q ${cardPlacement.arrowControl.x} ${cardPlacement.arrowControl.y} ${cardPlacement.arrowEnd.x} ${cardPlacement.arrowEnd.y}`}
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="6"
-              strokeLinecap="round"
-              strokeOpacity="0.9"
-            />
-            {/* Royal blue dotted line with arrowhead */}
-            <path
-              d={`M ${cardPlacement.arrowStart.x} ${cardPlacement.arrowStart.y} Q ${cardPlacement.arrowControl.x} ${cardPlacement.arrowControl.y} ${cardPlacement.arrowEnd.x} ${cardPlacement.arrowEnd.y}`}
-              fill="none"
-              stroke="#2563eb"
-              strokeWidth="3.2"
-              strokeDasharray="8 6"
-              strokeLinecap="round"
-              markerEnd="url(#tubeca-tour-arrowhead)"
-              style={{
-                transition: 'd 0.25s ease-out',
-                animation: 'tubecaDash 1.4s linear infinite',
-              }}
-            />
-          </g>
-        )}
-      </svg>
-
-      {/* Floating Tooltip Callout Card — Light Theme (Tema Claro) */}
-      <div
-        ref={cardRef}
-        style={{
-          position: 'absolute',
-          left: `${cardPlacement.cardX}px`,
-          top: `${cardPlacement.cardY}px`,
-          width: 'min(380px, calc(100vw - 32px))',
-          maxHeight: 'calc(100dvh - 84px)',
-          overflowY: 'auto',
-          boxSizing: 'border-box',
-          display: 'flex',
-          flexDirection: 'column',
-          backgroundColor: '#ffffff',
-          color: 'var(--ink-900, #0f172a)',
-          borderRadius: '16px',
-          border: '1.5px solid var(--border-subtle, #e2e8f0)',
-          boxShadow: '0 20px 45px -10px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.05)',
-          padding: '16px 18px',
-          zIndex: 10000,
-          pointerEvents: 'auto',
-          transition: 'left 0.22s cubic-bezier(0.16, 1, 0.3, 1), top 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-          animation: 'tubecaFadeInScale 0.22s ease-out',
-        }}
-      >
-        {/* Header: Step Pill Badge & Close Button */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexShrink: 0 }}>
+  const steps: TourStep[] = [
+    {
+      id: 'search-filters',
+      badge: 'Paso 1 de 6 · Búsqueda',
+      title: 'Buscador y Filtros Inteligentes',
+      subtitle: 'Encuentra becas a tu medida en segundos',
+      description:
+        'Escribe tu carrera (ej. Medicina, Sistemas), tu universidad de interés o tu ciudad. Usa los filtros para afinar por nivel académico, 100% de cobertura o estrato socioeconómico.',
+      tip: 'Puedes filtrar por becas de Pregrado o Posgrado y convocatorias del Icetex o privadas.',
+      icon: <Search size={20} style={{ color: 'var(--brand-600, #2563eb)' }} />,
+      renderPreview: () => (
+        <div
+          style={{
+            backgroundColor: '#f8fafc',
+            border: '1.5px solid #e2e8f0',
+            borderRadius: '12px',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
           <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '3px 10px',
-              borderRadius: '9999px',
-              backgroundColor: 'var(--brand-50, #eff6ff)',
-              border: '1px solid var(--brand-200, #bfdbfe)',
-              color: 'var(--brand-700, #1d4ed8)',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-            }}
-          >
-            {step.icon}
-            <span>{step.badge}</span>
-          </div>
-
-          <button
-            onClick={handleSkip}
-            aria-label="Cerrar tutorial"
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: '28px',
-              height: '28px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--surface-subtle, #f8fafc)',
-              color: 'var(--ink-400, #94a3b8)',
-              border: '1px solid var(--border-subtle, #e2e8f0)',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#e2e8f0';
-              e.currentTarget.style.color = 'var(--ink-900, #0f172a)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--surface-subtle, #f8fafc)';
-              e.currentTarget.style.color = 'var(--ink-400, #94a3b8)';
+              gap: '8px',
+              backgroundColor: '#ffffff',
+              border: '1.5px solid #cbd5e1',
+              borderRadius: '8px',
+              padding: '8px 12px',
             }}
           >
-            <X size={15} />
-          </button>
+            <Search size={16} style={{ color: '#64748b' }} />
+            <span style={{ fontSize: '0.8125rem', color: '#0f172a', fontWeight: 600 }}>
+              Ingeniería de Sistemas · Bogotá
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            <span
+              style={{
+                fontSize: '0.6875rem',
+                fontWeight: 700,
+                padding: '4px 8px',
+                borderRadius: '6px',
+                backgroundColor: '#eff6ff',
+                color: '#1d4ed8',
+                border: '1px solid #bfdbfe',
+              }}
+            >
+              🎓 Pregrado
+            </span>
+            <span
+              style={{
+                fontSize: '0.6875rem',
+                fontWeight: 700,
+                padding: '4px 8px',
+                borderRadius: '6px',
+                backgroundColor: '#fefce8',
+                color: '#a16207',
+                border: '1px solid #fef08a',
+              }}
+            >
+              ⭐ Cobertura 100%
+            </span>
+            <span
+              style={{
+                fontSize: '0.6875rem',
+                fontWeight: 700,
+                padding: '4px 8px',
+                borderRadius: '6px',
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                border: '1px solid #cbd5e1',
+              }}
+            >
+              📍 Nacional
+            </span>
+          </div>
         </div>
-
-        {/* Title */}
-        <h3
+      ),
+    },
+    {
+      id: 'swipe',
+      badge: 'Paso 2 de 6 · Modo Swipe',
+      title: 'Explora con Modo Tarjetas',
+      subtitle: 'Desliza hacia la derecha para guardar o pulsa ❤️',
+      description:
+        'Explora las convocatorias una a una en tarjetas interactivas con su contorno y detalles clave. Desliza a la derecha o pulsa ❤️ para guardar en tus favoritas; desliza a la izquierda o pulsa ✕ para descartar.',
+      tip: 'En computador puedes usar las teclas de flecha ← y → de tu teclado para revisar más rápido.',
+      icon: <Layers size={20} style={{ color: '#e11d48' }} />,
+      renderPreview: () => (
+        <div
           style={{
-            fontSize: '1.0625rem',
-            fontWeight: 800,
-            color: 'var(--ink-900, #0f172a)',
-            lineHeight: 1.25,
-            marginBottom: '6px',
-            flexShrink: 0,
+            backgroundColor: '#ffffff',
+            border: '2px solid #3b82f6',
+            borderRadius: '14px',
+            padding: '16px',
+            boxShadow: '0 8px 20px -4px rgba(59, 130, 246, 0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            position: 'relative',
           }}
         >
-          {step.title}
-        </h3>
-
-        {/* Description */}
-        <p
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#2563eb' }}>
+              Universidad de los Andes
+            </span>
+            <span
+              style={{
+                fontSize: '0.6875rem',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '9999px',
+                backgroundColor: '#dcfce7',
+                color: '#15803d',
+              }}
+            >
+              100% Matrícula
+            </span>
+          </div>
+          <div style={{ fontSize: '0.9375rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.3 }}>
+            Beca Quiero Estudiar
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '6px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                backgroundColor: '#fee2e2',
+                color: '#dc2626',
+                fontWeight: 700,
+                fontSize: '0.75rem',
+              }}
+            >
+              ✕ Descartar (←)
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                backgroundColor: '#dcfce7',
+                color: '#15803d',
+                fontWeight: 700,
+                fontSize: '0.75rem',
+              }}
+            >
+              <Heart size={14} fill="#15803d" /> Guardar (→)
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'requirements',
+      badge: 'Paso 3 de 6 · Verificador',
+      title: 'Verificador "¿Aplico a esta Beca?"',
+      subtitle: 'Comprueba notas Saber 11 y requisitos al instante',
+      description:
+        'Cada convocatoria muestra sus requisitos de ingreso: puntaje Saber 11 necesario, promedio académico mínimo (ej. Promedio ≥ 4.0), estrato socioeconómico y checklist de documentos exigidos.',
+      tip: 'Puedes simular tu puntaje para ver si cumples al 100% antes de iniciar la solicitud.',
+      icon: <CheckCircle2 size={20} style={{ color: '#16a34a' }} />,
+      renderPreview: () => (
+        <div
           style={{
-            fontSize: '0.8125rem',
-            color: 'var(--ink-600, #475569)',
-            lineHeight: 1.5,
-            marginBottom: '10px',
+            backgroundColor: '#f8fafc',
+            border: '1.5px solid #e2e8f0',
+            borderRadius: '12px',
+            padding: '14px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
           }}
         >
-          {step.description}
-        </p>
-
-        {/* Hint Pill if available */}
-        {step.hint && (
           <div
             style={{
-              padding: '6px 10px',
-              backgroundColor: 'var(--accent-50, #fefce8)',
-              borderLeft: '3px solid var(--accent-500, #eab308)',
-              borderRadius: '0 6px 6px 0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#ffffff',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
+            <span style={{ fontSize: '0.8125rem', color: '#334155', fontWeight: 600 }}>
+              Puntaje Saber 11 mínimo
+            </span>
+            <span style={{ fontSize: '0.8125rem', fontWeight: 800, color: '#2563eb' }}>
+              340 / 500
+            </span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#ffffff',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
+            <span style={{ fontSize: '0.8125rem', color: '#334155', fontWeight: 600 }}>
+              Promedio académico
+            </span>
+            <span style={{ fontSize: '0.8125rem', fontWeight: 800, color: '#d97706' }}>
+              Promedio ≥ 4.0
+            </span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
               fontSize: '0.75rem',
-              color: 'var(--accent-900, #713f12)',
-              lineHeight: 1.4,
-              marginBottom: '12px',
+              color: '#16a34a',
+              fontWeight: 700,
+              padding: '4px 6px',
+            }}
+          >
+            <CheckCircle2 size={15} /> Cumples con todos los criterios de elegibilidad
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'map',
+      badge: 'Paso 4 de 6 · Mapa',
+      title: 'Mapa Universitario de Colombia',
+      subtitle: 'Convocatorias organizadas por departamento',
+      description:
+        'Alterna a la vista de Mapa para ubicar becas regionales en Bogotá, Antioquia, Valle, Caribe y el resto del territorio nacional. Toca cualquier nodo departamental para ver las oportunidades de esa zona.',
+      tip: 'Puedes abrir el mapa haciendo clic en el botón "Mapa" en la parte superior.',
+      icon: <MapPin size={20} style={{ color: '#0284c7' }} />,
+      renderPreview: () => (
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '12px',
+            padding: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <div
+            style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#f8fafc',
               flexShrink: 0,
             }}
           >
-            {step.hint}
-          </div>
-        )}
-
-        {/* Step dots indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '14px', flexShrink: 0 }}>
-          {STEPS.map((s, idx) => (
-            <button
-              key={s.id}
-              onClick={() => setCurrentStepIndex(idx)}
-              aria-label={`Ir al paso ${idx + 1}`}
-              style={{
-                width: idx === currentStepIndex ? '20px' : '6px',
-                height: '6px',
-                borderRadius: '9999px',
-                backgroundColor: idx === currentStepIndex ? 'var(--brand-600, #2563eb)' : 'var(--border-hover, #cbd5e1)',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/mapa-colombia.png"
+              alt="Miniatura mapa Colombia"
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             />
-          ))}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '0.8125rem', fontWeight: 800, color: '#0f172a' }}>
+              Explora por departamento
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+              Bogotá (45 becas) · Antioquia (28 becas) · Valle del Cauca (19 becas)...
+            </div>
+          </div>
         </div>
-
-        {/* Footer Actions: Prev, Skip, Next (flexShrink: 0 guarantees they are ALWAYS visible) */}
+      ),
+    },
+    {
+      id: 'comparator',
+      badge: 'Paso 5 de 6 · Comparador',
+      title: 'Tus Guardadas y Comparador Cara a Cara',
+      subtitle: 'Elige las mejores opciones sin dudar',
+      description:
+        'Tus becas favoritas quedan reunidas en la sección "Guardadas". Puedes marcar hasta 3 becas simultáneas y abrir el Comparador para analizar coberturas, requisitos y fechas lado a lado.',
+      tip: 'El botón de balanza ⚖️ en la barra inferior flotante se activa al marcar tus becas.',
+      icon: <Scale size={20} style={{ color: '#7c3aed' }} />,
+      renderPreview: () => (
         <div
           style={{
+            backgroundColor: '#f8fafc',
+            border: '1.5px solid #e2e8f0',
+            borderRadius: '12px',
+            padding: '12px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '8px',
-            marginTop: 'auto',
-            paddingTop: '6px',
-            flexShrink: 0,
           }}
         >
-          <button
-            onClick={handleSkip}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                backgroundColor: '#7c3aed',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Scale size={16} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.8125rem', fontWeight: 800, color: '#0f172a' }}>
+                2 becas seleccionadas
+              </div>
+              <div style={{ fontSize: '0.6875rem', color: '#64748b' }}>
+                Compara porcentaje de matrícula y subsidios
+              </div>
+            </div>
+          </div>
+          <span
             style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--ink-500, #64748b)',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              padding: '6px 2px',
-              textDecoration: 'underline',
-              textUnderlineOffset: '3px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              color: '#7c3aed',
+              backgroundColor: '#ede9fe',
+              padding: '4px 10px',
+              borderRadius: '6px',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ink-900, #0f172a)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ink-500, #64748b)')}
           >
-            Saltar tour
-          </button>
+            Comparar
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: 'account',
+      badge: 'Paso 6 de 6 · Tu Cuenta',
+      title: 'Tu Cuenta y Alertas de Convocatoria',
+      subtitle: 'Acceso seguro sin contraseñas difíciles',
+      description:
+        'Ingresa con tu correo personal mediante un enlace directo de acceso ("Magic Link"). Guarda tus becas en la nube de forma permanente para consultarlas desde tu celular o computador, y recibe alertas antes de que venzan las postulaciones.',
+      tip: 'No necesitas recordar contraseñas: te enviamos un enlace de 1 solo clic a tu bandeja de entrada.',
+      icon: <User size={20} style={{ color: '#059669' }} />,
+      renderPreview: () => (
+        <div
+          style={{
+            backgroundColor: '#f0fdf4',
+            border: '1.5px solid #bbf7d0',
+            borderRadius: '12px',
+            padding: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <div
+            style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '50%',
+              backgroundColor: '#16a34a',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <User size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: '0.8125rem', fontWeight: 800, color: '#166534' }}>
+              Sincronización en la Nube
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#15803d', marginTop: '2px' }}>
+              Tus becas guardadas siempre contigo en cualquier dispositivo.
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {currentStepIndex > 0 && (
-              <button
-                onClick={handlePrev}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '6px 12px',
-                  borderRadius: '7px',
-                  backgroundColor: '#ffffff',
-                  color: 'var(--ink-700, #334155)',
-                  border: '1px solid var(--border-subtle, #e2e8f0)',
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'background-color 0.15s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-subtle, #f8fafc)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
-              >
-                <ChevronLeft size={14} />
-                <span>Anterior</span>
-              </button>
-            )}
+  const activeStepData = steps[currentStep];
+  const isFirst = currentStep === 0;
+  const isLast = currentStep === steps.length - 1;
 
-            <button
-              onClick={handleNext}
+  const handleNext = () => {
+    if (isLast) {
+      triggerSaveConfetti();
+      handleClose();
+    } else {
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+    }
+  };
+
+  const handlePrev = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  return (
+    <>
+      {/* Discreet floating trigger button: doesn't alter header or page interface */}
+      <button
+        onClick={handleOpen}
+        aria-label="Abrir guía de uso de TuBeca"
+        title="¿Cómo usar TuBeca? Recorrido interactivo"
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          zIndex: 60,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '7px',
+          padding: '9px 14px',
+          backgroundColor: '#ffffff',
+          color: 'var(--brand-700, #1d4ed8)',
+          border: '1.5px solid var(--brand-300, #93c5fd)',
+          borderRadius: '9999px',
+          boxShadow: '0 4px 14px rgba(37, 99, 235, 0.18)',
+          fontWeight: 700,
+          fontSize: '0.8125rem',
+          cursor: 'pointer',
+          transition: 'all 0.18s ease',
+        }}
+      >
+        <HelpCircle size={16} style={{ color: 'var(--brand-600, #2563eb)' }} />
+        <span>¿Cómo funciona?</span>
+      </button>
+
+      {/* Standalone Tour Modal (Clean Light Theme, 100% Responsive, No Interface Changes) */}
+      {isOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Recorrido guiado de TuBeca"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            backgroundColor: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            animation: 'fadeIn 0.2s ease-out',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '18px',
+              border: '1.5px solid #e2e8f0',
+              boxShadow: '0 20px 40px -10px rgba(15, 23, 42, 0.25)',
+              width: '100%',
+              maxWidth: '560px',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
+            {/* Header */}
+            <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '5px',
-                padding: '7px 14px',
-                borderRadius: '7px',
-                backgroundColor: 'var(--brand-600, #2563eb)',
-                color: '#ffffff',
-                border: 'none',
-                fontSize: '0.8125rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.28)',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--brand-700, #1d4ed8)';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--brand-600, #2563eb)';
-                e.currentTarget.style.transform = 'none';
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                borderBottom: '1px solid #f1f5f9',
+                backgroundColor: '#ffffff',
               }}
             >
-              {isLastStep ? (
-                <>
-                  <Sparkles size={14} />
-                  <span>¡Empezar a explorar!</span>
-                </>
-              ) : (
-                <>
-                  <span>Siguiente</span>
-                  <ChevronRight size={14} />
-                </>
-              )}
-            </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--brand-50, #eff6ff)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <GraduationCap size={18} style={{ color: 'var(--brand-600, #2563eb)' }} />
+                </div>
+                <div>
+                  <span
+                    style={{
+                      fontSize: '0.6875rem',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      color: 'var(--brand-600, #2563eb)',
+                    }}
+                  >
+                    Guía de la Plataforma
+                  </span>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#0f172a' }}>
+                    TuBeca Colombia
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleClose}
+                aria-label="Cerrar recorrido"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  border: '1px solid #e2e8f0',
+                  backgroundColor: '#f8fafc',
+                  color: '#64748b',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Scrollable Content Area */}
+            <div
+              style={{
+                padding: '20px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+              }}
+            >
+              {/* Badge & Step indicator */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    padding: '3px 10px',
+                    borderRadius: '9999px',
+                    backgroundColor: '#eff6ff',
+                    color: '#1d4ed8',
+                    border: '1px solid #dbeafe',
+                  }}
+                >
+                  {activeStepData.badge}
+                </span>
+
+                {/* Dots indicator */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  {steps.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentStep(idx)}
+                      aria-label={`Ir al paso ${idx + 1}`}
+                      style={{
+                        width: idx === currentStep ? '18px' : '7px',
+                        height: '7px',
+                        borderRadius: '9999px',
+                        backgroundColor: idx === currentStep ? 'var(--brand-600, #2563eb)' : '#cbd5e1',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'all 0.2s ease',
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Title and Subtitle */}
+              <div>
+                <h3
+                  style={{
+                    fontSize: '1.1875rem',
+                    fontWeight: 800,
+                    color: '#0f172a',
+                    letterSpacing: '-0.02em',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  {activeStepData.icon}
+                  <span>{activeStepData.title}</span>
+                </h3>
+                <p style={{ fontSize: '0.8125rem', color: '#64748b', marginTop: '3px', fontWeight: 600 }}>
+                  {activeStepData.subtitle}
+                </p>
+              </div>
+
+              {/* Visual Demo / Card Mockup */}
+              <div style={{ minHeight: '110px' }}>{activeStepData.renderPreview()}</div>
+
+              {/* Explanatory Description */}
+              <p style={{ fontSize: '0.875rem', color: '#334155', lineHeight: 1.55 }}>
+                {activeStepData.description}
+              </p>
+
+              {/* Tip callout */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '8px',
+                  backgroundColor: '#fefce8',
+                  border: '1px solid #fef08a',
+                  borderRadius: '10px',
+                  padding: '10px 12px',
+                  fontSize: '0.78125rem',
+                  color: '#854d0e',
+                  lineHeight: 1.45,
+                }}
+              >
+                <Sparkles size={15} style={{ flexShrink: 0, marginTop: '2px', color: '#ca8a04' }} />
+                <span>
+                  <strong>Tip:</strong> {activeStepData.tip}
+                </span>
+              </div>
+            </div>
+
+            {/* Footer with Responsive Action Buttons */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 20px',
+                borderTop: '1px solid #f1f5f9',
+                backgroundColor: '#ffffff',
+                gap: '10px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleClose}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748b',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: '8px 10px',
+                }}
+              >
+                Saltar
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
+                {!isFirst && (
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    aria-label="Paso anterior"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      backgroundColor: '#f1f5f9',
+                      color: '#334155',
+                      fontSize: '0.8125rem',
+                      fontWeight: 700,
+                      border: '1px solid #cbd5e1',
+                      cursor: 'pointer',
+                      minHeight: '40px',
+                    }}
+                  >
+                    <ChevronLeft size={16} />
+                    <span>Anterior</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  aria-label={isLast ? 'Finalizar tutorial' : 'Siguiente paso'}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--brand-600, #2563eb)',
+                    color: '#ffffff',
+                    fontSize: '0.8125rem',
+                    fontWeight: 700,
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+                    cursor: 'pointer',
+                    minHeight: '40px',
+                  }}
+                >
+                  <span>{isLast ? '¡Empezar a buscar!' : 'Siguiente'}</span>
+                  {isLast ? <Sparkles size={16} /> : <ChevronRight size={16} />}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Embedded CSS animations */}
-      <style jsx>{`
-        @keyframes tubecaFadeInScale {
-          from {
-            opacity: 0;
-            transform: scale(0.96) translateY(4px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-        @keyframes tubecaDash {
-          to {
-            stroke-dashoffset: -28;
-          }
-        }
-      `}</style>
-    </div>
+      )}
+    </>
   );
 }

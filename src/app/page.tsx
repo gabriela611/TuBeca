@@ -663,7 +663,6 @@ export default function Home() {
         totalBecas={allBecas.length}
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
-        onOpenTour={() => setIsIntroTourOpen(true)}
       />
 
       {/* Main Workspace (3 columns on desktop, vertical flow on mobile) */}
