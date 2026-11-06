@@ -1,24 +1,38 @@
-:root {
+as:root {
   /* Brand Core Palette */
-  --primary-color: #1d4ed8;  /* Royal Blue 700 */
-  --accent-color: #facc15;   /* Golden Yellow 400 */
-  --background-color: #f5f8ff; /* Soft Ice Blue */
-  --text-color: #0f172a;     /* Deep Slate 900 */
+  --primary-color: #1d4ed8;
+  /* Royal Blue 700 */
+  --accent-color: #facc15;
+  /* Golden Yellow 400 */
+  --background-color: #f5f8ff;
+  /* Soft Ice Blue */
+  --text-color: #0f172a;
+  /* Deep Slate 900 */
 
   /* Text & Ink Tokens (WCAG AAA / AA verified) */
-  --ink-900: #0f172a;        /* Primario: Deep Slate Navy (> 15:1) */
-  --ink-700: #334155;        /* Secundario: Slate Navy (> 8.5:1) */
-  --ink-600: #475569;        /* Terciario estructurado (> 6.0:1) */
-  --ink-500: #64748b;        /* Metadatos y etiquetas (> 4.5:1) */
-  --ink-400: #94a3b8;        /* Iconografía secundaria y placeholders */
-  --ink-300: #cbd5e1;        /* Separadores sutiles */
+  --ink-900: #0f172a;
+  /* Primario: Deep Slate Navy (> 15:1) */
+  --ink-700: #334155;
+  /* Secundario: Slate Navy (> 8.5:1) */
+  --ink-600: #475569;
+  /* Terciario estructurado (> 6.0:1) */
+  --ink-500: #64748b;
+  /* Metadatos y etiquetas (> 4.5:1) */
+  --ink-400: #94a3b8;
+  /* Iconografía secundaria y placeholders */
+  --ink-300: #cbd5e1;
+  /* Separadores sutiles */
 
   /* Surfaces & Canvas (Atmospheric Ice Depth) */
-  --surface-base: #f5f8ff;   /* Fondo oficial Soft Ice Blue */
+  --surface-base: #f5f8ff;
+  /* Fondo oficial Soft Ice Blue */
   --surface-base-gradient: linear-gradient(180deg, #f8faff 0%, #edf3fc 100%);
-  --surface-card: #ffffff;   /* Tarjetas blancas puras */
-  --surface-subtle: #f0f5ff; /* Superficie secundaria con tinte azul sutil */
-  --surface-hover: #f4f8ff;  /* Hover reactivo */
+  --surface-card: #ffffff;
+  /* Tarjetas blancas puras */
+  --surface-subtle: #f0f5ff;
+  /* Superficie secundaria con tinte azul sutil */
+  --surface-hover: #f4f8ff;
+  /* Hover reactivo */
   --surface-active: #e8f0fe;
 
   /* Borders & Focus */
@@ -269,6 +283,7 @@ textarea {
 
 /* Mobile Viewport Adaptation (< 1024px) */
 @media (max-width: 1023px) {
+
   html,
   body {
     height: auto !important;
@@ -389,6 +404,10 @@ textarea {
     display: none !important;
   }
 
+  .tubeca-header-tour-btn {
+    display: none !important;
+  }
+
   .tubeca-header-view-toggle {
     display: none !important;
   }
@@ -406,6 +425,24 @@ textarea {
 
   .tubeca-fav-label {
     display: none !important;
+  }
+
+  .tubeca-auth-label {
+    display: none !important;
+  }
+
+  .tubeca-auth-btn {
+    padding: 7px 10px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    justify-content: center !important;
+  }
+
+  .tubeca-fav-btn {
+    padding: 7px 10px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    justify-content: center !important;
   }
 
   .tubeca-desktop-sidebar {
@@ -455,6 +492,7 @@ textarea {
   from {
     transform: translateX(-100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -466,6 +504,7 @@ textarea {
     opacity: 0;
     transform: scale(0.9) translate3d(0, 0, 0);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) translate3d(0, 0, 0);

@@ -332,6 +332,7 @@ export function Header({
         {onOpenAuth && (
           <button
             onClick={onOpenAuth}
+            className="tubeca-auth-btn"
             aria-label={user ? `Cuenta: ${user.email}` : 'Iniciar sesión'}
             style={{
               display: 'flex',
@@ -346,9 +347,26 @@ export function Header({
               border: `1px solid ${user ? 'var(--brand-200)' : 'var(--border-subtle)'}`,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
+              flexShrink: 0,
             }}
           >
-            <User size={15} style={{ color: user ? 'var(--brand-600)' : 'inherit' }} />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <User size={15} style={{ color: user ? 'var(--brand-600)' : 'inherit' }} />
+              {user && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '-3px',
+                    right: '-3px',
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: '#16a34a',
+                    border: '1.5px solid #ffffff',
+                  }}
+                />
+              )}
+            </div>
             <span className="tubeca-auth-label">
               {user ? user.email.split('@')[0] : 'Cuenta'}
             </span>
@@ -488,6 +506,35 @@ export function Header({
           </div>
           <span>Guardadas</span>
         </button>
+
+        {/* Tab 6: Cuenta */}
+        {onOpenAuth && (
+          <button
+            type="button"
+            onClick={onOpenAuth}
+            className="tubeca-mobile-nav-item tubeca-nav-account"
+            aria-label={user ? `Mi cuenta (${user.email})` : 'Iniciar sesión o ver mi cuenta'}
+          >
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <User size={19} style={{ color: user ? 'var(--brand-600)' : 'inherit' }} />
+              {user && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '-1px',
+                    right: '-3px',
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: '#16a34a',
+                    border: '1.5px solid #ffffff',
+                  }}
+                />
+              )}
+            </div>
+            <span>{user ? 'Cuenta' : 'Ingresar'}</span>
+          </button>
+        )}
       </nav>
     </header>
   );

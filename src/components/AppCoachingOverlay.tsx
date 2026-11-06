@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   MapPin,
   Heart,
+  User,
   ChevronRight,
   ChevronLeft,
   X,
@@ -38,11 +39,11 @@ const STEPS: StepConfig[] = [
   {
     id: 'search',
     title: 'Buscador inteligente',
-    badge: 'Paso 1 de 6 · Búsqueda',
-    icon: <Search size={17} />,
+    badge: 'Paso 1 de 7 · Búsqueda',
+    icon: <Search size={16} />,
     description:
       'Escribe tu carrera (ej. Medicina, Sistemas), una universidad o tu ciudad para filtrar convocatorias al instante.',
-    hint: 'Consejo: Puedes buscar por palabras como "Mérito", "Indígena" o "Deportiva".',
+    hint: 'Consejo: Puedes buscar por palabras clave como "Mérito", "Indígena" o "Deportiva".',
     desktopSelector: '.tubeca-header-search',
     mobileSelector: '.tubeca-header-search',
     preferredSide: 'bottom',
@@ -50,8 +51,8 @@ const STEPS: StepConfig[] = [
   {
     id: 'filters',
     title: 'Filtros a tu medida',
-    badge: 'Paso 2 de 6 · Filtros',
-    icon: <Filter size={17} />,
+    badge: 'Paso 2 de 7 · Filtros',
+    icon: <Filter size={16} />,
     description:
       'Segmenta becas por nivel académico (pregrado o posgrado), cobertura (100% total o parcial), ciudad y tipo de universidad.',
     hint: 'Aplica uno o varios filtros para encontrar tu convocatoria ideal en segundos.',
@@ -62,8 +63,8 @@ const STEPS: StepConfig[] = [
   {
     id: 'swipe',
     title: 'Modo Swipe de Becas',
-    badge: 'Paso 3 de 6 · Exploración',
-    icon: <Layers size={17} />,
+    badge: 'Paso 3 de 7 · Exploración',
+    icon: <Layers size={16} />,
     description:
       'Explora las becas una a una en tarjetas dinámicas. Desliza a la derecha o pulsa ❤️ para guardar; desliza a la izquierda para descartar.',
     hint: '¡Usa las flechas ← y → de tu teclado en el computador para explorar rápido!',
@@ -74,8 +75,8 @@ const STEPS: StepConfig[] = [
   {
     id: 'requirements',
     title: 'Verificador "¿Aplico?"',
-    badge: 'Paso 4 de 6 · Elegibilidad',
-    icon: <CheckCircle2 size={17} />,
+    badge: 'Paso 4 de 7 · Elegibilidad',
+    icon: <CheckCircle2 size={16} />,
     description:
       'Compara tus resultados del Saber 11 y promedio con los requisitos mínimos de la beca, revisa el checklist de documentos y postúlate.',
     hint: 'Configura tus notas en el panel para ver si cumples al 100% los requisitos.',
@@ -86,8 +87,8 @@ const STEPS: StepConfig[] = [
   {
     id: 'map',
     title: 'Mapa Universitario de Colombia',
-    badge: 'Paso 5 de 6 · Territorio',
-    icon: <MapPin size={17} />,
+    badge: 'Paso 5 de 7 · Territorio',
+    icon: <MapPin size={16} />,
     description:
       'Cambia a la vista de mapa para explorar cuántas becas y universidades aliadas existen en tu departamento o región del país.',
     hint: 'Haz clic en cualquier departamento en el mapa para ver sus convocatorias.',
@@ -98,13 +99,25 @@ const STEPS: StepConfig[] = [
   {
     id: 'saved',
     title: 'Tus Guardadas y Comparador',
-    badge: 'Paso 6 de 6 · Comparación',
-    icon: <Heart size={17} />,
+    badge: 'Paso 6 de 7 · Comparación',
+    icon: <Heart size={16} />,
     description:
       'Tus becas favoritas quedan guardadas aquí para revisarlas cuando quieras. Además, puedes seleccionar hasta 3 becas y compararlas cara a cara.',
     hint: 'Al guardar una beca, no perderás sus fechas límite ni requisitos.',
     desktopSelector: '.tubeca-fav-btn',
     mobileSelector: '.tubeca-nav-saved',
+    preferredSide: 'bottom',
+  },
+  {
+    id: 'account',
+    title: 'Tu Cuenta y Alertas de Cierre',
+    badge: 'Paso 7 de 7 · Tu Cuenta',
+    icon: <User size={16} />,
+    description:
+      'Inicia sesión con tu correo (sin contraseñas). Guarda tus convocatorias favoritas en la nube y recibe recordatorios antes de que cierren las fechas de postulación.',
+    hint: '¡Tu sesión sincroniza tus becas guardadas en tu celular y en tu computador!',
+    desktopSelector: '.tubeca-auth-btn',
+    mobileSelector: '.tubeca-nav-account',
     preferredSide: 'bottom',
   },
 ];
@@ -168,6 +181,11 @@ export function AppCoachingOverlay({
         document.querySelector('.tubeca-nav-saved') ||
         document.querySelector('.tubeca-mobile-bottom-nav')) as HTMLElement | null;
     }
+    if (!target && step.id === 'account') {
+      target = (document.querySelector('.tubeca-nav-account') ||
+        document.querySelector('.tubeca-auth-btn') ||
+        document.querySelector('.tubeca-mobile-bottom-nav')) as HTMLElement | null;
+    }
     if (!target && step.id === 'map') {
       target = (document.querySelector('.tubeca-header-view-toggle') ||
         document.querySelector('.tubeca-nav-map')) as HTMLElement | null;
@@ -212,7 +230,6 @@ export function AppCoachingOverlay({
 
     // Margins from viewport edges
     const topMargin = isMobile ? 74 : 20;
-    // On mobile, keep 82px margin from bottom to stay well clear of the mobile bottom navigation bar
     const bottomMargin = isMobile ? 82 : 24;
     const sideMargin = 16;
 
@@ -245,14 +262,12 @@ export function AppCoachingOverlay({
       if (step.preferredSide === 'right') {
         rawCx = clampedRect.right + 20;
         rawCy = clampedRect.top + 20;
-        // If placing to the right overflows screen, flip to left
         if (rawCx + cardWidth > vw - sideMargin) {
           rawCx = Math.max(sideMargin, clampedRect.left - cardWidth - 20);
         }
       } else if (step.preferredSide === 'left') {
         rawCx = clampedRect.left - cardWidth - 20;
         rawCy = clampedRect.top + 20;
-        // If placing to the left overflows, flip to right
         if (rawCx < sideMargin) {
           rawCx = clampedRect.right + 20;
         }
@@ -260,7 +275,6 @@ export function AppCoachingOverlay({
         rawCx = Math.max(sideMargin, Math.min(vw - cardWidth - sideMargin, targetCenter.x - cardWidth / 2));
         rawCy = clampedRect.bottom + 18;
       } else {
-        // Preferred top
         rawCx = Math.max(sideMargin, Math.min(vw - cardWidth - sideMargin, targetCenter.x - cardWidth / 2));
         rawCy = clampedRect.top - cardHeight - 18;
       }
@@ -307,7 +321,7 @@ export function AppCoachingOverlay({
       };
     }
 
-    // Curved Bezier control point for playful, clean trajectory
+    // Curved Bezier control point for clean trajectory
     const midX = (startPoint.x + endPoint.x) / 2;
     const midY = (startPoint.y + endPoint.y) / 2;
     const dx = endPoint.x - startPoint.x;
@@ -426,7 +440,7 @@ export function AppCoachingOverlay({
         }}
       >
         <defs>
-          {/* Spotlight Mask: Cut out the target element so it glows underneath */}
+          {/* Spotlight Mask: Cut out the target element so it stays fully illuminated underneath */}
           <mask id="tubeca-spotlight-mask">
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
             {targetRect && (
@@ -441,7 +455,7 @@ export function AppCoachingOverlay({
             )}
           </mask>
 
-          {/* Golden Arrowhead Marker */}
+          {/* Royal Blue Arrowhead Marker */}
           <marker
             id="tubeca-tour-arrowhead"
             viewBox="0 0 12 12"
@@ -451,7 +465,7 @@ export function AppCoachingOverlay({
             markerHeight="10"
             orient="auto-start-reverse"
           >
-            <polygon points="0 1, 12 6, 0 11, 3 6" fill="#facc15" stroke="#facc15" strokeWidth="1" />
+            <polygon points="0 1, 12 6, 0 11, 3 6" fill="#2563eb" stroke="#2563eb" strokeWidth="1" />
           </marker>
 
           {/* Subtle glow filter for the spotlight boundary */}
@@ -461,21 +475,21 @@ export function AppCoachingOverlay({
           </filter>
         </defs>
 
-        {/* Semi-transparent dark overlay with target spotlight cut out */}
+        {/* Semi-transparent scrim with target spotlight cut out */}
         <rect
           x="0"
           y="0"
           width="100%"
           height="100%"
-          fill="rgba(15, 23, 42, 0.74)"
+          fill="rgba(15, 23, 42, 0.45)"
           mask="url(#tubeca-spotlight-mask)"
           style={{ transition: 'all 0.25s ease-out' }}
         />
 
-        {/* Target Highlight: Glowing Dotted Border around highlighted button/area */}
+        {/* Target Highlight: Glowing Dotted Royal Blue Border around highlighted button/area */}
         {targetRect && (
           <g>
-            {/* Outer halo */}
+            {/* Outer soft halo */}
             <rect
               x={targetRect.x - 2}
               y={targetRect.y - 2}
@@ -483,9 +497,8 @@ export function AppCoachingOverlay({
               height={targetRect.height + 4}
               rx="14"
               fill="none"
-              stroke="#facc15"
-              strokeWidth="1.5"
-              strokeOpacity="0.4"
+              stroke="rgba(37, 99, 235, 0.28)"
+              strokeWidth="4"
             />
             {/* Dotted border with pulsing effect */}
             <rect
@@ -495,8 +508,8 @@ export function AppCoachingOverlay({
               height={targetRect.height}
               rx="14"
               fill="none"
-              stroke="#facc15"
-              strokeWidth="3"
+              stroke="#2563eb"
+              strokeWidth="2.8"
               strokeDasharray="8 6"
               filter="url(#tubeca-halo-glow)"
             />
@@ -506,20 +519,20 @@ export function AppCoachingOverlay({
         {/* Dotted Line with Curved Arrow pointing from Card to Target */}
         {targetRect && (
           <g>
-            {/* Contrast under-stroke (dark shadow line behind dotted yellow for readability) */}
+            {/* White contrast under-stroke for sharp visibility on any background */}
             <path
               d={`M ${cardPlacement.arrowStart.x} ${cardPlacement.arrowStart.y} Q ${cardPlacement.arrowControl.x} ${cardPlacement.arrowControl.y} ${cardPlacement.arrowEnd.x} ${cardPlacement.arrowEnd.y}`}
               fill="none"
-              stroke="#0f172a"
-              strokeWidth="5"
+              stroke="#ffffff"
+              strokeWidth="6"
               strokeLinecap="round"
-              strokeOpacity="0.5"
+              strokeOpacity="0.9"
             />
-            {/* Bright yellow dotted line with arrowhead */}
+            {/* Royal blue dotted line with arrowhead */}
             <path
               d={`M ${cardPlacement.arrowStart.x} ${cardPlacement.arrowStart.y} Q ${cardPlacement.arrowControl.x} ${cardPlacement.arrowControl.y} ${cardPlacement.arrowEnd.x} ${cardPlacement.arrowEnd.y}`}
               fill="none"
-              stroke="#facc15"
+              stroke="#2563eb"
               strokeWidth="3.2"
               strokeDasharray="8 6"
               strokeLinecap="round"
@@ -533,7 +546,7 @@ export function AppCoachingOverlay({
         )}
       </svg>
 
-      {/* Floating Tooltip Callout Card */}
+      {/* Floating Tooltip Callout Card — Light Theme (Tema Claro) */}
       <div
         ref={cardRef}
         style={{
@@ -546,11 +559,11 @@ export function AppCoachingOverlay({
           boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: '#ffffff',
+          color: 'var(--ink-900, #0f172a)',
           borderRadius: '16px',
-          border: '1.5px solid rgba(250, 204, 21, 0.45)',
-          boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          border: '1.5px solid var(--border-subtle, #e2e8f0)',
+          boxShadow: '0 20px 45px -10px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.05)',
           padding: '16px 18px',
           zIndex: 10000,
           pointerEvents: 'auto',
@@ -558,18 +571,18 @@ export function AppCoachingOverlay({
           animation: 'tubecaFadeInScale 0.22s ease-out',
         }}
       >
-        {/* Header: Badge & Close Button */}
+        {/* Header: Step Pill Badge & Close Button */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexShrink: 0 }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '3px 9px',
+              padding: '3px 10px',
               borderRadius: '9999px',
-              backgroundColor: 'rgba(250, 204, 21, 0.15)',
-              border: '1px solid rgba(250, 204, 21, 0.4)',
-              color: '#facc15',
+              backgroundColor: 'var(--brand-50, #eff6ff)',
+              border: '1px solid var(--brand-200, #bfdbfe)',
+              color: 'var(--brand-700, #1d4ed8)',
               fontSize: '0.75rem',
               fontWeight: 700,
               letterSpacing: '0.02em',
@@ -589,19 +602,19 @@ export function AppCoachingOverlay({
               width: '28px',
               height: '28px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              color: '#94a3b8',
-              border: 'none',
+              backgroundColor: 'var(--surface-subtle, #f8fafc)',
+              color: 'var(--ink-400, #94a3b8)',
+              border: '1px solid var(--border-subtle, #e2e8f0)',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-              e.currentTarget.style.color = '#ffffff';
+              e.currentTarget.style.backgroundColor = '#e2e8f0';
+              e.currentTarget.style.color = 'var(--ink-900, #0f172a)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-              e.currentTarget.style.color = '#94a3b8';
+              e.currentTarget.style.backgroundColor = 'var(--surface-subtle, #f8fafc)';
+              e.currentTarget.style.color = 'var(--ink-400, #94a3b8)';
             }}
           >
             <X size={15} />
@@ -613,7 +626,7 @@ export function AppCoachingOverlay({
           style={{
             fontSize: '1.0625rem',
             fontWeight: 800,
-            color: '#ffffff',
+            color: 'var(--ink-900, #0f172a)',
             lineHeight: 1.25,
             marginBottom: '6px',
             flexShrink: 0,
@@ -626,8 +639,8 @@ export function AppCoachingOverlay({
         <p
           style={{
             fontSize: '0.8125rem',
-            color: '#cbd5e1',
-            lineHeight: 1.45,
+            color: 'var(--ink-600, #475569)',
+            lineHeight: 1.5,
             marginBottom: '10px',
           }}
         >
@@ -639,11 +652,11 @@ export function AppCoachingOverlay({
           <div
             style={{
               padding: '6px 10px',
-              backgroundColor: 'rgba(30, 41, 59, 0.9)',
-              borderLeft: '3px solid #facc15',
+              backgroundColor: 'var(--accent-50, #fefce8)',
+              borderLeft: '3px solid var(--accent-500, #eab308)',
               borderRadius: '0 6px 6px 0',
               fontSize: '0.75rem',
-              color: '#e2e8f0',
+              color: 'var(--accent-900, #713f12)',
               lineHeight: 1.4,
               marginBottom: '12px',
               flexShrink: 0,
@@ -664,7 +677,7 @@ export function AppCoachingOverlay({
                 width: idx === currentStepIndex ? '20px' : '6px',
                 height: '6px',
                 borderRadius: '9999px',
-                backgroundColor: idx === currentStepIndex ? '#facc15' : 'rgba(148, 163, 184, 0.4)',
+                backgroundColor: idx === currentStepIndex ? 'var(--brand-600, #2563eb)' : 'var(--border-hover, #cbd5e1)',
                 border: 'none',
                 padding: 0,
                 cursor: 'pointer',
@@ -691,7 +704,7 @@ export function AppCoachingOverlay({
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#94a3b8',
+              color: 'var(--ink-500, #64748b)',
               fontSize: '0.8125rem',
               fontWeight: 600,
               cursor: 'pointer',
@@ -699,8 +712,8 @@ export function AppCoachingOverlay({
               textDecoration: 'underline',
               textUnderlineOffset: '3px',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ink-900, #0f172a)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ink-500, #64748b)')}
           >
             Saltar tour
           </button>
@@ -713,18 +726,18 @@ export function AppCoachingOverlay({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  padding: '6px 11px',
+                  padding: '6px 12px',
                   borderRadius: '7px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  color: '#e2e8f0',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  backgroundColor: '#ffffff',
+                  color: 'var(--ink-700, #334155)',
+                  border: '1px solid var(--border-subtle, #e2e8f0)',
                   fontSize: '0.8125rem',
                   fontWeight: 600,
                   cursor: 'pointer',
                   transition: 'background-color 0.15s ease',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.16)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-subtle, #f8fafc)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
               >
                 <ChevronLeft size={14} />
                 <span>Anterior</span>
@@ -739,28 +752,28 @@ export function AppCoachingOverlay({
                 gap: '5px',
                 padding: '7px 14px',
                 borderRadius: '7px',
-                backgroundColor: isLastStep ? '#facc15' : 'var(--brand-600, #2563eb)',
-                color: isLastStep ? '#0f172a' : '#ffffff',
+                backgroundColor: 'var(--brand-600, #2563eb)',
+                color: '#ffffff',
                 border: 'none',
                 fontSize: '0.8125rem',
                 fontWeight: 700,
                 cursor: 'pointer',
-                boxShadow: isLastStep
-                  ? '0 4px 14px rgba(250, 204, 21, 0.35)'
-                  : '0 4px 14px rgba(37, 99, 235, 0.35)',
+                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.28)',
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--brand-700, #1d4ed8)';
                 e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--brand-600, #2563eb)';
                 e.currentTarget.style.transform = 'none';
               }}
             >
               {isLastStep ? (
                 <>
                   <Sparkles size={14} />
-                  <span>¡Empezar!</span>
+                  <span>¡Empezar a explorar!</span>
                 </>
               ) : (
                 <>
