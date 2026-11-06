@@ -460,22 +460,22 @@ export function ScholarshipList({
                       borderRadius: 'var(--radius-full)',
                       backgroundColor:
                         elegibilidad.estado === 'cumples'
-                          ? 'var(--status-success-bg)'
+                          ? '#f0fdf4'
                           : elegibilidad.estado === 'no_cumples'
-                            ? 'var(--status-error-bg)'
-                            : 'var(--status-warning-bg)',
+                            ? '#fef2f2'
+                            : 'var(--surface-subtle)',
                       color:
                         elegibilidad.estado === 'cumples'
-                          ? 'var(--status-success-text)'
+                          ? '#15803d'
                           : elegibilidad.estado === 'no_cumples'
-                            ? 'var(--status-error-text)'
-                            : 'var(--status-warning-text)',
+                            ? '#b91c1c'
+                            : 'var(--ink-500)',
                       border: `1px solid ${
                         elegibilidad.estado === 'cumples'
-                          ? 'var(--status-success-border)'
+                          ? '#bbf7d0'
                           : elegibilidad.estado === 'no_cumples'
-                            ? 'var(--status-error-border)'
-                            : 'var(--status-warning-border)'
+                            ? '#fecaca'
+                            : 'var(--border-subtle)'
                       }`,
                     }}
                   >
@@ -487,7 +487,7 @@ export function ScholarshipList({
                         ? 'Cumples'
                         : elegibilidad.estado === 'no_cumples'
                           ? `No cumples: ${elegibilidad.motivo}`
-                          : 'Faltan datos en perfil'}
+                          : 'Faltan datos'}
                     </span>
                   </span>
                 </div>
@@ -510,18 +510,18 @@ export function ScholarshipList({
                     backgroundColor: countdown.esVencida
                       ? 'var(--surface-subtle)'
                       : countdown.esUrgente
-                        ? 'var(--status-urgent-bg)'
+                        ? '#fef2f2'
                         : 'var(--brand-50)',
                     color: countdown.esVencida
                       ? 'var(--ink-500)'
                       : countdown.esUrgente
-                        ? 'var(--status-urgent-text)'
+                        ? '#dc2626'
                         : 'var(--brand-700)',
                     border: `1px solid ${
                       countdown.esVencida
                         ? 'var(--border-subtle)'
                         : countdown.esUrgente
-                          ? 'var(--status-urgent-border)'
+                          ? '#fecaca'
                           : 'var(--brand-200)'
                     }`,
                     flexShrink: 0,

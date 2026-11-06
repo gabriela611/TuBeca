@@ -632,16 +632,16 @@ export function TinderCardDeck({
           }}
         >
           {/* Stamp Badges */}
-          {/* LIKE / GUARDAR (Success Emerald) */}
+          {/* LIKE / GUARDAR (Green/Gold) */}
           <div
             style={{
               position: 'absolute',
               top: '20px',
               left: '20px',
               padding: '6px 14px',
-              border: '3px solid var(--status-success-icon)',
+              border: '3px solid #16a34a',
               borderRadius: '8px',
-              color: 'var(--status-success-icon)',
+              color: '#16a34a',
               fontWeight: 900,
               fontSize: '1rem',
               letterSpacing: '0.08em',
@@ -650,27 +650,23 @@ export function TinderCardDeck({
               opacity: likeOpacity,
               pointerEvents: 'none',
               backgroundColor: 'rgba(255, 255, 255, 0.94)',
-              boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+              boxShadow: '0 4px 12px rgba(22, 163, 74, 0.2)',
               zIndex: 30,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
             }}
           >
-            <Heart size={16} fill="currentColor" />
-            <span>GUARDAR</span>
+            GUARDAR ❤️
           </div>
 
-          {/* NOPE / DESCARTAR (Rose Coral) */}
+          {/* NOPE / DESCARTAR (Red) */}
           <div
             style={{
               position: 'absolute',
               top: '20px',
               right: '20px',
               padding: '6px 14px',
-              border: '3px solid var(--status-error-icon)',
+              border: '3px solid #dc2626',
               borderRadius: '8px',
-              color: 'var(--status-error-icon)',
+              color: '#dc2626',
               fontWeight: 900,
               fontSize: '1rem',
               letterSpacing: '0.08em',
@@ -679,15 +675,11 @@ export function TinderCardDeck({
               opacity: nopeOpacity,
               pointerEvents: 'none',
               backgroundColor: 'rgba(255, 255, 255, 0.94)',
-              boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)',
+              boxShadow: '0 4px 12px rgba(220, 38, 38, 0.2)',
               zIndex: 30,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
             }}
           >
-            <X size={16} strokeWidth={2.8} />
-            <span>DESCARTAR</span>
+            DESCARTAR ✕
           </div>
 
           {/* Top Row: University & City */}
@@ -806,7 +798,7 @@ export function TinderCardDeck({
                     borderRadius: '4px',
                   }}
                 >
-                  Promedio ≥ {activeBeca.promedioMinimo}
+                  Promedio $\ge$ {activeBeca.promedioMinimo}
                 </span>
               )}
 
@@ -842,22 +834,22 @@ export function TinderCardDeck({
                       borderRadius: 'var(--radius-full)',
                       backgroundColor:
                         elegibilidad.estado === 'cumples'
-                          ? 'var(--status-success-bg)'
+                          ? '#f0fdf4'
                           : elegibilidad.estado === 'no_cumples'
-                            ? 'var(--status-error-bg)'
-                            : 'var(--status-warning-bg)',
+                            ? '#fef2f2'
+                            : 'var(--surface-subtle)',
                       color:
                         elegibilidad.estado === 'cumples'
-                          ? 'var(--status-success-text)'
+                          ? '#15803d'
                           : elegibilidad.estado === 'no_cumples'
-                            ? 'var(--status-error-text)'
-                            : 'var(--status-warning-text)',
+                            ? '#b91c1c'
+                            : 'var(--ink-600)',
                       border: `1px solid ${
                         elegibilidad.estado === 'cumples'
-                          ? 'var(--status-success-border)'
+                          ? '#bbf7d0'
                           : elegibilidad.estado === 'no_cumples'
-                            ? 'var(--status-error-border)'
-                            : 'var(--status-warning-border)'
+                            ? '#fecaca'
+                            : 'var(--border-subtle)'
                       }`,
                     }}
                   >

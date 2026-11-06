@@ -8,7 +8,6 @@ import { ScholarshipList, type BecaItem, parseCoveragePercentage } from '@/compo
 import { ScholarshipDetail } from '@/components/ScholarshipDetail';
 import { ColombiaMap } from '@/components/ColombiaMap';
 import { OnboardingModal } from '@/components/OnboardingModal';
-import { AppCoachingOverlay } from '@/components/AppCoachingOverlay';
 import { ScholarshipComparator } from '@/components/ScholarshipComparator';
 import { AuthModal } from '@/components/AuthModal';
 import { getSupabaseClient } from '@/lib/supabase/client';
@@ -43,9 +42,8 @@ export default function Home() {
   const [showingFavorites, setShowingFavorites] = useState(false);
   const [selectedSavedBecaId, setSelectedSavedBecaId] = useState<string | null>(null);
 
-  // Onboarding & Intro Tour state
+  // Onboarding state
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-  const [isIntroTourOpen, setIsIntroTourOpen] = useState(false);
   const [orden, setOrden] = useState<string>('cierra_pronto');
 
   // Elegibilidad user profile
@@ -83,13 +81,8 @@ export default function Home() {
           setFavorites(new Set(JSON.parse(savedFavs)));
         }
 
-        const introSeen = localStorage.getItem('tubeca_intro_seen');
-        if (!introSeen) {
-          setIsIntroTourOpen(true);
-        }
-
         const onboardingDone = localStorage.getItem('tubeca_onboarding_done');
-        if (!onboardingDone && introSeen) {
+        if (!onboardingDone) {
           setIsOnboardingOpen(true);
         }
 
@@ -663,7 +656,6 @@ export default function Home() {
         totalBecas={allBecas.length}
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
-        onOpenIntroTour={() => setIsIntroTourOpen(true)}
       />
 
       {/* Main Workspace (3 columns on desktop, vertical flow on mobile) */}
@@ -813,17 +805,7 @@ export default function Home() {
             />
           </main>
         ) : (
-          <main
-            className="tubeca-map-main"
-            style={{
-              display: 'flex',
-              flex: 1,
-              minHeight: 0,
-              height: '100%',
-              overflow: 'hidden',
-              background: 'var(--surface-base-gradient)',
-            }}
-          >
+          <main style={{ display: 'flex', flex: 1, minHeight: 0, height: '100%', overflow: 'hidden', background: 'var(--surface-base-gradient)' }}>
             <ColombiaMap
               selectedDepartamento={filters.ciudad || filters.departamento}
               onSelectDepartamento={(city) => {
@@ -897,14 +879,6 @@ export default function Home() {
           }
         }}
         onApplyFilters={handleApplyOnboardingFilters}
-      />
-
-      {/* In-app Coaching Overlay with Dotted Lines, Arrows & Target Highlights */}
-      <AppCoachingOverlay
-        isOpen={isIntroTourOpen}
-        onClose={() => setIsIntroTourOpen(false)}
-        activeView={activeView}
-        onNavigateView={(v) => setActiveView(v)}
       />
 
       {/* Comparator Floating Bottom Bar */}
