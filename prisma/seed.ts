@@ -271,6 +271,108 @@ async function main() {
     },
   });
 
+  const uniMinCiencias = await prisma.universidad.upsert({
+    where: { nombre: 'MinCiencias' },
+    update: {
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://minciencias.gov.co',
+      tipo: 'publica',
+    },
+    create: {
+      nombre: 'MinCiencias',
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://minciencias.gov.co',
+      tipo: 'publica',
+    },
+  });
+
+  const uniFulbright = await prisma.universidad.upsert({
+    where: { nombre: 'Comisión Fulbright Colombia' },
+    update: {
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://fulbright.edu.co',
+      tipo: 'publica',
+    },
+    create: {
+      nombre: 'Comisión Fulbright Colombia',
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://fulbright.edu.co',
+      tipo: 'publica',
+    },
+  });
+
+  const uniCarolina = await prisma.universidad.upsert({
+    where: { nombre: 'Fundación Carolina' },
+    update: {
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://www.fundacioncarolina.es',
+      tipo: 'privada',
+    },
+    create: {
+      nombre: 'Fundación Carolina',
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://www.fundacioncarolina.es',
+      tipo: 'privada',
+    },
+  });
+
+  const uniDaad = await prisma.universidad.upsert({
+    where: { nombre: 'DAAD Colombia' },
+    update: {
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://www.daad.co',
+      tipo: 'publica',
+    },
+    create: {
+      nombre: 'DAAD Colombia',
+      ciudad: 'Bogotá',
+      departamento: 'Colombia',
+      sitioWeb: 'https://www.daad.co',
+      tipo: 'publica',
+    },
+  });
+
+  const uniSapiencia = await prisma.universidad.upsert({
+    where: { nombre: 'Sapiencia (Alcaldía de Medellín)' },
+    update: {
+      ciudad: 'Medellín',
+      departamento: 'Antioquia',
+      sitioWeb: 'https://sapiencia.gov.co',
+      tipo: 'publica',
+    },
+    create: {
+      nombre: 'Sapiencia (Alcaldía de Medellín)',
+      ciudad: 'Medellín',
+      departamento: 'Antioquia',
+      sitioWeb: 'https://sapiencia.gov.co',
+      tipo: 'publica',
+    },
+  });
+
+  const uniNorte = await prisma.universidad.upsert({
+    where: { nombre: 'Universidad del Norte' },
+    update: {
+      ciudad: 'Barranquilla',
+      departamento: 'Atlántico',
+      sitioWeb: 'https://www.uninorte.edu.co',
+      tipo: 'privada',
+    },
+    create: {
+      nombre: 'Universidad del Norte',
+      ciudad: 'Barranquilla',
+      departamento: 'Atlántico',
+      sitioWeb: 'https://www.uninorte.edu.co',
+      tipo: 'privada',
+    },
+  });
+
   const universityMap: Record<string, string> = {
     'Universidad EAFIT': uniEafit.id,
     'Universidad Pontificia Bolivariana (UPB)': uniUpb.id,
@@ -285,6 +387,12 @@ async function main() {
     'Universidad de Antioquia (UdeA)': uniUdeA.id,
     'ICETEX': uniIcetex.id,
     'COLFUTURO': uniColfuturo.id,
+    'MinCiencias': uniMinCiencias.id,
+    'Comisión Fulbright Colombia': uniFulbright.id,
+    'Fundación Carolina': uniCarolina.id,
+    'DAAD Colombia': uniDaad.id,
+    'Sapiencia (Alcaldía de Medellín)': uniSapiencia.id,
+    'Universidad del Norte': uniNorte.id,
   };
 
   // 2. Seed Categorías

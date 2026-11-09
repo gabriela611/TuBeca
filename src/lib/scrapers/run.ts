@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma';
 import { normalizeAll } from '@/lib/normalizer';
 import { IcetexScraper } from './icetex';
 import { ColfuturoScraper } from './colfuturo';
+import { PosgradosScraper } from './posgrados';
 import { UniversidadScraper, universidadConfigs } from './universidad';
 import type { Scraper, ScraperResult } from './types';
 
@@ -24,6 +25,7 @@ export async function executeScrapers(options: {
   const scrapers: Scraper[] = [
     new IcetexScraper(),
     new ColfuturoScraper(),
+    new PosgradosScraper(),
     ...universidadConfigs.map((config) => new UniversidadScraper(config)),
   ];
 

@@ -330,8 +330,22 @@ export default function Home() {
 
       // 2. Nivel de estudio
       if (filters.tipo) {
-        const nivel = normalizeText(beca.nivelAcademico || beca.tipo);
-        if (!nivel.includes(normalizeText(filters.tipo))) {
+        const nivel = normalizeText(beca.nivelAcademico || beca.tipo || '');
+        const target = normalizeText(filters.tipo);
+        if (target === 'posgrado') {
+          if (
+            !nivel.includes('posgrado') &&
+            !nivel.includes('maestr') &&
+            !nivel.includes('doctor') &&
+            !nivel.includes('especializ')
+          ) {
+            return false;
+          }
+        } else if (target === 'doctorado') {
+          if (!nivel.includes('doctor')) {
+            return false;
+          }
+        } else if (!nivel.includes(target)) {
           return false;
         }
       }

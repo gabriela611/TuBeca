@@ -30,13 +30,25 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('q');
     const orden = searchParams.get('orden') || 'cierra_pronto';
     const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 200);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '150', 10), 300);
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
 
     if (tipo) {
-      where.nivelAcademico = { contains: tipo, mode: 'insensitive' };
+      const tipoNorm = tipo.toLowerCase();
+      if (tipoNorm === 'posgrado') {
+        where.OR = [
+          { nivelAcademico: { contains: 'posgrado', mode: 'insensitive' } },
+          { nivelAcademico: { contains: 'maestr', mode: 'insensitive' } },
+          { nivelAcademico: { contains: 'doctor', mode: 'insensitive' } },
+          { nivelAcademico: { contains: 'especializ', mode: 'insensitive' } },
+        ];
+      } else if (tipoNorm === 'doctorado') {
+        where.nivelAcademico = { contains: 'doctor', mode: 'insensitive' };
+      } else {
+        where.nivelAcademico = { contains: tipo, mode: 'insensitive' };
+      }
     }
 
     if (modalidad) {
