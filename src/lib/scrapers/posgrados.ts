@@ -46,3 +46,4 @@ export class PosgradosScraper implements Scraper {
     return scholarships;
   }
 }
+
